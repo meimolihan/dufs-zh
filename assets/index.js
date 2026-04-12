@@ -392,8 +392,8 @@ async function setupIndexPage() {
   if (DATA.allow_archive) {
     const $download = document.querySelector(".download");
     $download.href = baseUrl() + "?zip";
-    $download.title = "下载文件夹为 ZIP";
-    $download.setAttribute("aria-label", "下载文件夹为 ZIP");
+    $download.title = "打包根目录并下载";
+    $download.setAttribute("aria-label", "打包根目录并下载");
     $download.classList.add("dlwt");
     $download.classList.remove("hidden");
   }
