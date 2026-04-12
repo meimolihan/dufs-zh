@@ -454,7 +454,7 @@ function addPath(file, index) {
     if (DATA.allow_archive) {
       actionDownload = `
       <div class="action-btn">
-        <a class="dlwt" href="${url}?zip" title="打包根目录并下载" download>${ICONS.download}</a>
+        <a class="dlwt" href="${url}?zip" title="将文件夹下载为.zip文件" download>${ICONS.download}</a>
       </div>`;
     }
   } else {
