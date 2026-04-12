@@ -191,6 +191,117 @@ docker stop dufs && docker rm dufs
 
 ---
 
+#### 🛠️ 本地构建镜像
+
+如果想基于本地源码构建镜像：
+
+**第一步：克隆项目**
+
+```bash
+git clone https://github.com/meimolihan/dufs-zh.git
+cd dufs-zh
+```
+
+**第二步：开启 Docker 多架构支持**
+
+> 构建支持 amd64 / arm64 双架构的镜像。`docker buildx create` 只需执行一次，之后每次构建直接使用即可。
+
+```bash
+# 启用 experimental 模式（Docker 旧版本需要，新版本可省略）
+export DOCKER_CLI_EXPERIMENTAL=enabled
+
+# 创建新的 buildx builder
+docker buildx create --name mybuilder --use
+
+# 启动并检查 builder
+docker buildx inspect mybuilder --bootstrap
+```
+
+**第三步：构建并推送多架构镜像**
+
+> 需要先执行 `docker login` 登录 Docker Hub。
+
+```bash
+# 先登录 Docker Hub
+docker login -u mobufan
+
+# 构建 amd64 + arm64 双架构镜像
+docker buildx build \
+ --platform linux/amd64,linux/arm64 \
+ -t mobufan/dufs-zh:latest \
+ --load \
+ .
+
+# amd64 + arm64 双架构镜像，推送到 Docker Hub
+docker push mobufan/dufs-zh
+```
+
+| 参数 | 说明 |
+|------|------|
+| `--platform` | 指定目标架构，支持 `linux/amd64`、`linux/arm64`、`linux/arm/v7` |
+| `--push` | 构建完成后自动推送到镜像仓库 |
+| `-t` | 镜像标签，可同时指定多个（:latest + 版本号） |
+
+> 💡 如果只想本地构建不推送，去掉 `--push`，改为加 `-o type=docker`：
+> ```bash
+> docker buildx build --platform linux/amd64,linux/arm64 -t mobufan/dufs-zh:latest -o type=docker .
+> ```
+
+**单独构建某一架构**
+
+- 构建单架构 `amd64` 到本地并推送
+
+```bash
+# 先登录 Docker Hub
+docker login -u mobufan
+
+# 构建单架构 amd64 到本地
+docker buildx build \
+ --platform linux/amd64 \
+ -t mobufan/dufs-zh:amd64 \
+ -t mobufan/dufs-zh:1.0.0-amd64 \
+ --load \
+ .
+
+# amd64 架构镜像，推送到 Docker Hub
+docker push mobufan/dufs-zh:amd64
+docker push mobufan/dufs-zh:1.0.0-amd64
+```
+
+- 构建单架构 `arm64` 到本地并推送
+
+```bash
+# 先登录 Docker Hub
+docker login -u mobufan
+
+# 构建单架构 arm64 到本地
+docker buildx build \
+ --platform linux/arm64 \
+ -t mobufan/dufs-zh:arm64 \
+ -t mobufan/dufs-zh:1.0.0-arm64 \
+ --load \
+ .
+
+# arm64 架构镜像，推送到 Docker Hub
+docker push mobufan/dufs-zh:arm64
+docker push mobufan/dufs-zh:1.0.0-arm64
+```
+
+| 架构 | 镜像标签示例 |
+|------|------------|
+| amd64 | `mobufan/dufs-zh:amd64` |
+| arm64 | `mobufan/dufs-zh:arm64` |
+| 双架构（默认） | `mobufan/dufs-zh:latest` |
+
+> ⚠️ 单独构建后拉取时必须指定对应标签：
+> ```bash
+> docker pull mobufan/dufs-zh:amd64 # 仅 amd64 机器
+> docker pull mobufan/dufs-zh:arm64 # 仅 arm64 机器（如 Mac M系列）
+> docker pull mobufan/dufs-zh:latest # 自动匹配当前架构
+> ```
+
+---
+
 ## 构建自定义镜像
 
 ### 从源码构建（推荐）
