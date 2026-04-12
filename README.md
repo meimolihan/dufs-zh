@@ -233,6 +233,10 @@ docker buildx build \
   -t mobufan/dufs-zh:latest \
   --push \
   .
+  
+# 5. 卸载 buildx 环境
+docker buildx stop mybuilder
+docker buildx rm mybuilder
 ```
 
 **或者先切换驱动再构建**：
