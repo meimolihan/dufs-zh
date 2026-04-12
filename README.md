@@ -4,381 +4,419 @@
 [![Crates](https://img.shields.io/crates/v/dufs.svg)](https://crates.io/crates/dufs)
 [![Docker Pulls](https://img.shields.io/docker/pulls/sigoden/dufs)](https://hub.docker.com/r/sigoden/dufs)
 
-Dufs is a distinctive utility file server that supports static serving, uploading, searching, accessing control, webdav...
-
-![demo](https://user-images.githubusercontent.com/4012553/220513063-ff0f186b-ac54-4682-9af4-47a9781dee0d.png)
+Dufs is a ** distinctive utility file server** that supports static serving, uploading, searching, access control, and WebDAV — with a clean, modern web UI.
 
 ## Features
 
-- Serve static files
-- Download folder as zip file
-- Upload files and folders (Drag & Drop)
-- Create/Edit/Search files
-- Resumable/partial uploads/downloads
-- Access control
-- Support https
-- Support webdav
-- Easy to use with curl
+- 🖥️  **Modern Web UI** — Glassmorphism header, smooth animations, file-type badges, dark/light mode
+- 📁  **Static File Serving** — Serve any directory or single file
+- ⬆️  **Upload** — Drag & drop, resumable uploads (20MB+), folder upload
+- 📦  **Download as ZIP** — One-click folder download
+- ✏️  **Create / Edit** — Full-featured text file editor in browser
+- 🔍  **Search** — Instant fuzzy search across file/folder names
+- 🔐  **Access Control** — Username/password auth with read/write/read-only roles
+- 🌐  **WebDAV** — Mount as a network drive on Windows/macOS/Linux
+- 🔒  **HTTPS** — TLS/SSL support out of the box
+- 🌈  **CORS Enabled** — Easy to integrate with frontend apps
+- 🎨  **Custom UI** — Override assets directory for your own branding
+
+---
+
+## Quick Start
+
+```sh
+# macOS / Linux / Windows (from releases)
+./dufs
+
+# Docker — serve current directory on port 5000
+docker run -v $(pwd):/data -p 5000:5000 --rm sigoden/dufs /data
+
+# Build from source
+cargo build --release
+./target/release/dufs
+```
+
+Then open **http://localhost:5000** in your browser.
+
+---
 
 ## Install
 
-### With cargo
+### Binary (all platforms)
 
-```
+Download from [GitHub Releases](https://github.com/sigoden/dufs/releases), unzip and add `dufs` to your `$PATH`.
+
+| Platform | Architecture | File |
+|----------|-------------|------|
+| Linux | x86_64 / aarch64 / armv7 / i386 | `dufs-*-linux-*.tar.gz` |
+| macOS  | x86_64 / aarch64 (Apple Silicon) | `dufs-*-macos-*.tar.gz` |
+| Windows | x86_64 / i386 | `dufs-*-windows-*.zip` |
+
+### Package managers
+
+```sh
+# macOS — Homebrew
+brew install dufs
+
+# Linux — npm (via npx)
+npx dufs
+
+# Rust — Cargo
 cargo install dufs
 ```
 
-### With docker
+---
 
-```
-docker run -v `pwd`:/data -p 5000:5000 --rm sigoden/dufs /data -A
-```
+## Docker
 
-### With [Homebrew](https://brew.sh)
+### Pull pre-built image (recommended)
 
-```
-brew install dufs
+```sh
+docker pull sigoden/dufs
 ```
 
-### Binaries on macOS, Linux, Windows
+Multi-architecture images are available for: `linux/amd64`, `linux/arm64`, `linux/arm/v7`.
 
-Download from [Github Releases](https://github.com/sigoden/dufs/releases), unzip and add dufs to your $PATH.
+### Run — common scenarios
 
-## CLI
+**Serve current working directory (read-only)**
+
+```sh
+docker run -v $(pwd):/data -p 5000:5000 --rm sigoden/dufs /data
+```
+
+> On Windows PowerShell, use: `docker run -v ${pwd}:/data -p 5000:5000 --rm sigoden/dufs /data`
+> On Windows CMD, use: `docker run -v "%cd%":/data -p 5000:5000 --rm sigoden/dufs /data`
+
+**Allow all operations (upload / delete / create / edit)**
+
+```sh
+docker run -v /path/to/your/folder:/data -p 5000:5000 --rm sigoden/dufs /data -A
+```
+
+**Serve a specific sub-directory with write access**
+
+```sh
+docker run -v /mnt/shared:/mnt/shared -p 5000:5000 --rm sigoden/dufs /mnt/shared/media -A
+```
+
+**Protect with username and password**
+
+```sh
+docker run -v $(pwd):/data -p 5000:5000 --rm sigoden/dufs /data \
+  -a admin:your-password@/:rw
+```
+
+**HTTPS — with TLS certificates**
+
+```sh
+docker run -v $(pwd):/data -v /path/to/certs:/certs \
+  -p 443:443 --rm sigoden/dufs /data \
+  --tls-cert /certs/server.crt --tls-key /certs/server.key
+```
+
+**Bind to a specific IP / custom port**
+
+```sh
+docker run -v $(pwd):/data -p 192.168.1.100:8080:8080 --rm sigoden/dufs /data -p 8080
+```
+
+**Unix socket (Linux only)**
+
+```sh
+docker run -v /run:/run -v $(pwd):/data --rm --network none sigoden/dufs /data \
+  -b /run/dufs.sock
+```
+
+### Build image from source
+
+#### Build with cargo (cross-compile to Linux musl, multi-arch)
+
+```sh
+# Clone the repository
+git clone https://github.com/sigoden/dufs.git
+cd dufs
+
+# Build the Docker image (produces linux/amd64 + linux/arm64)
+docker build -t my-dufs .
+
+# Or with a specific tag
+docker build -t my-dufs:v1.0 .
+```
+
+#### Build with Alpine (download release binaries)
+
+```sh
+# Build from a GitHub release tarball
+docker build \
+  --build-arg REPO=sigoden/dufs \
+  --build-arg VER=0.45.0 \
+  -t my-dufs:v0.45.0 \
+  -f Dockerfile-release \
+  .
+```
+
+### Build image with custom UI assets
+
+If you've customized the `assets/` directory and want to bake it into the Docker image:
+
+```dockerfile
+# Dockerfile.custom
+FROM --platform=linux/amd64 messense/rust-musl-cross:x86_64-musl AS builder
+WORKDIR /src
+COPY . .
+RUN cargo install --path . --root /
+
+FROM alpine:latest
+RUN apk add --no-cache ca-certificates
+COPY --from=builder /bin/dufs /usr/local/bin/dufs
+COPY ./assets/ /app/assets/
+WORKDIR /app
+EXPOSE 5000
+CMD ["dufs", "/data", "--assets", "/app/assets/"]
+```
+
+Then build and run:
+
+```sh
+docker build -f Dockerfile.custom -t my-dufs:custom .
+docker run -v $(pwd):/data -p 5000:5000 --rm my-dufs:custom
+```
+
+---
+
+## CLI Reference
 
 ```
-Dufs is a distinctive utility file server - https://github.com/sigoden/dufs
-
-Usage: dufs [OPTIONS] [serve-path]
+dufs [OPTIONS] [serve-path]
 
 Arguments:
-  [serve-path]  Specific path to serve [default: .]
+  [serve-path]  Path to serve [default: .]
 
 Options:
-  -c, --config <file>        Specify configuration file
-  -b, --bind <addrs>         Specify bind address or unix socket
-  -p, --port <port>          Specify port to listen on [default: 5000]
-      --path-prefix <path>   Specify a path prefix
-      --hidden <value>       Hide paths from directory listings, e.g. tmp,*.log,*.lock
-  -a, --auth <rules>         Add auth roles, e.g. user:pass@/dir1:rw,/dir2
-  -A, --allow-all            Allow all operations
-      --allow-upload         Allow upload files/folders
-      --allow-delete         Allow delete files/folders
-      --allow-search         Allow search files/folders
-      --allow-symlink        Allow symlink to files/folders outside root directory
-      --allow-archive        Allow download folders as archive file
-      --allow-hash           Allow ?hash query to get file sha256 hash
-      --enable-cors          Enable CORS, sets `Access-Control-Allow-Origin: *`
-      --render-index         Serve index.html when requesting a directory, returns 404 if not found index.html
-      --render-try-index     Serve index.html when requesting a directory, returns directory listing if not found index.html
-      --render-spa           Serve SPA(Single Page Application)
-      --assets <path>        Set the path to the assets directory for overriding the built-in assets
-      --log-format <format>  Customize http log format
-      --log-file <file>      Specify the file to save logs to, other than stdout/stderr
-      --compress <level>     Set zip compress level [default: low] [possible values: none, low, medium, high]
-      --completions <shell>  Print shell completion script for <shell> [possible values: bash, elvish, fish, powershell, zsh]
-      --tls-cert <path>      Path to an SSL/TLS certificate to serve with HTTPS
-      --tls-key <path>       Path to the SSL/TLS certificate's private key
-  -h, --help                 Print help
-  -V, --version              Print version
+  -c, --config <file>      Configuration file (YAML)
+  -b, --bind <addrs>        Bind address or unix socket [default: 0.0.0.0:5000]
+  -p, --port <port>         Port to listen on [default: 5000]
+      --path-prefix <path>  URL path prefix (e.g. /dufs)
+      --hidden <value>      Glob patterns to hide, e.g. tmp,*.log
+  -a, --auth <rules>         Auth rules (see Access Control)
+  -A, --allow-all           Allow upload / delete / search / archive
+      --allow-upload        Allow file & folder upload
+      --allow-delete        Allow deleting files & folders
+      --allow-search        Allow searching files & folders
+      --allow-symlink       Allow symlinks outside root
+      --allow-archive       Allow folder → ZIP download
+      --allow-hash          Allow ?hash query (returns SHA-256)
+      --enable-cors         Allow all origins (CORS *)
+      --render-index        Serve index.html for directory requests
+      --render-try-index    Fall back to listing if no index.html
+      --render-spa          Single Page App mode (all 404 → index.html)
+      --assets <path>       Custom assets directory (for UI overrides)
+      --log-format <fmt>    HTTP access log format
+      --log-file <file>     Write logs to file instead of stdout
+      --compress <level>    ZIP compression [none | low | medium | high]
+      --tls-cert <path>     TLS certificate (.crt / .pem)
+      --tls-key <path>      TLS private key (.key)
+  -h, --help                Show this help
+  -V, --version             Show version
 ```
+
+---
 
 ## Examples
 
-Serve current working directory in read-only mode
+**Read-only file server (default)**
 
-```
+```sh
 dufs
 ```
 
-Allow all operations like upload/delete/search/create/edit...
+**Full read-write (upload / delete / create / edit)**
 
-```
+```sh
 dufs -A
 ```
 
-Only allow upload operation
+**Upload only**
 
-```
+```sh
 dufs --allow-upload
 ```
 
-Serve a specific directory
+**Serve a specific directory**
 
-```
-dufs Downloads
+```sh
+dufs ~/Downloads
 ```
 
-Serve a single file
+**Serve a single file**
 
-```
+```sh
 dufs linux-distro.iso
 ```
 
-Serve a single-page application like react/vue
+**Serve a Single Page App (React / Vue / Svelte)**
 
-```
+```sh
 dufs --render-spa
 ```
 
-Serve a static website with index.html
+**Serve with index.html fallback**
 
-```
+```sh
 dufs --render-index
 ```
 
-Require username/password
-
-```
-dufs -a admin:123@/:rw
-```
-
-Listen on specific host:ip 
-
-```
-dufs -b 127.0.0.1 -p 80
-```
-
-Listen on unix socket
-```
-dufs -b /tmp/dufs.socket
-```
-
-Use https
-
-```
-dufs --tls-cert my.crt --tls-key my.key
-```
-
-## API
-
-Upload a file
+**Username + password protection**
 
 ```sh
-curl -T path-to-file http://127.0.0.1:5000/new-path/path-to-file
+# admin:123456 has read-write access, anonymous users have read-only
+dufs -a 'admin:123456@/:rw' -a '@/'
+
+# Multiple users with different permissions
+dufs -a 'admin:secret@/:rw' -a 'viewer:view@/public'
 ```
 
-Download a file
-```sh
-curl http://127.0.0.1:5000/path-to-file           # download the file
-curl http://127.0.0.1:5000/path-to-file?hash      # retrieve the sha256 hash of the file
-```
-
-Download a folder as zip file
+**Listen on a specific host**
 
 ```sh
-curl -o path-to-folder.zip http://127.0.0.1:5000/path-to-folder?zip
+dufs -b 127.0.0.1 -p 80          # local-only on port 80
+dufs -b 0.0.0.0 -p 8080          # all interfaces, port 8080
 ```
 
-Delete a file/folder
+**HTTPS**
 
 ```sh
-curl -X DELETE http://127.0.0.1:5000/path-to-file-or-folder
+dufs --tls-cert server.crt --tls-key server.key
 ```
 
-Create a directory
+**Path prefix (reverse proxy / sub-path deployment)**
 
 ```sh
-curl -X MKCOL http://127.0.0.1:5000/path-to-folder
+dufs --path-prefix /files -A
+# → served at http://host/files/
 ```
 
-Move the file/folder to the new path
+**Hide dotfiles and build artifacts**
 
 ```sh
-curl -X MOVE http://127.0.0.1:5000/path -H "Destination: http://127.0.0.1:5000/new-path"
+dufs --hidden '.*' --hidden '*/node_modules' --hidden '*.lock'
 ```
 
-List/search directory contents
+**Disable access logging**
 
 ```sh
-curl http://127.0.0.1:5000?q=Dockerfile           # search for files, similar to `find -name Dockerfile`
-curl http://127.0.0.1:5000?simple                 # output names only, similar to `ls -1`
-curl http://127.0.0.1:5000?json                   # output paths in json format
+dufs --log-format ''
 ```
 
-With authorization (Both basic or digest auth works)
+**Detailed access logging with user agent**
 
 ```sh
-curl http://127.0.0.1:5000/file --user user:pass                 # basic auth
-curl http://127.0.0.1:5000/file --user user:pass --digest        # digest auth
-```
-
-Resumable downloads
-
-```sh
-curl -C- -o file http://127.0.0.1:5000/file
-```
-
-Resumable uploads
-
-```sh
-upload_offset=$(curl -I -s http://127.0.0.1:5000/file | tr -d '\r' | sed -n 's/content-length: //p')
-dd skip=$upload_offset if=file status=none ibs=1 | \
-  curl -X PATCH -H "X-Update-Range: append" --data-binary @- http://127.0.0.1:5000/file
-```
-
-Health checks
-
-```sh
-curl http://127.0.0.1:5000/__dufs__/health
-```
-
-<details>
-<summary><h2>Advanced Topics</h2></summary>
-
-### Access Control
-
-Dufs supports account based access control. You can control who can do what on which path with `--auth`/`-a`.
-
-```
-dufs -a admin:admin@/:rw -a guest:guest@/
-dufs -a user:pass@/:rw,/dir1 -a @/
-```
-
-1. Use `@` to separate the account and paths. No account means anonymous user.
-2. Use `:` to separate the username and password of the account.
-3. Use `,` to separate paths.
-4. Use path suffix `:rw`/`:ro` set permissions: `read-write`/`read-only`. `:ro` can be omitted.
-
-- `-a admin:admin@/:rw`: `admin` has complete permissions for all paths.
-- `-a guest:guest@/`: `guest` has read-only permissions for all paths.
-- `-a user:pass@/:rw,/dir1`: `user` has read-write permissions for `/*`, has read-only permissions for `/dir1/*`.
-- `-a @/`: All paths is publicly accessible, everyone can view/download it.
-
-**Auth permissions are restricted by dufs global permissions.** If dufs does not enable upload permissions via `--allow-upload`, then the account will not have upload permissions even if it is granted `read-write`(`:rw`) permissions.
-
-#### Hashed Password
-
-DUFS supports the use of sha-512 hashed password.
-
-Create hashed password:
-
-```sh
-$ openssl passwd -6 123456 # or `mkpasswd -m sha-512 123456`
-$6$tWMB51u6Kb2ui3wd$5gVHP92V9kZcMwQeKTjyTRgySsYJu471Jb1I6iHQ8iZ6s07GgCIO69KcPBRuwPE5tDq05xMAzye0NxVKuJdYs/
-```
-
-Use hashed password:
-
-```sh
-dufs -a 'admin:$6$tWMB51u6Kb2ui3wd$5gVHP92V9kZcMwQeKTjyTRgySsYJu471Jb1I6iHQ8iZ6s07GgCIO69KcPBRuwPE5tDq05xMAzye0NxVKuJdYs/@/:rw'
-```
-> The hashed password contains `$6`, which can expand to a variable in some shells, so you have to use **single quotes** to wrap it.
-
-Two important things for hashed passwords:
-
-1. Dufs only supports sha-512 hashed passwords, so ensure that the password string always starts with `$6$`.
-2. Digest authentication does not function properly with hashed passwords.
-
-
-### Hide Paths
-
-Dufs supports hiding paths from directory listings via option `--hidden <glob>,...`.
-
-```
-dufs --hidden .git,.DS_Store,tmp
-```
-
-> The glob used in --hidden only matches file and directory names, not paths. So `--hidden dir1/file` is invalid.
-
-```sh
-dufs --hidden '.*'                          # hidden dotfiles
-dufs --hidden '*/'                          # hidden all folders
-dufs --hidden '*.log,*.lock'                # hidden by exts
-dufs --hidden '*.log' --hidden '*.lock'
-```
-
-### Log Format
-
-Dufs supports customize http log format with option `--log-format`.
-
-The log format can use following variables.
-
-| variable     | description                                                               |
-| ------------ | ------------------------------------------------------------------------- |
-| $remote_addr | client address                                                            |
-| $remote_user | user name supplied with authentication                                    |
-| $request     | full original request line                                                |
-| $status      | response status                                                           |
-| $http_       | arbitrary request header field. examples: $http_user_agent, $http_referer |
-
-
-The default log format is `'$remote_addr "$request" $status'`.
-```
-2022-08-06T06:59:31+08:00 INFO - 127.0.0.1 "GET /" 200
-```
-
-Disable http log
-```
-dufs --log-format=''
-```
-
-Log user-agent
-```
 dufs --log-format '$remote_addr "$request" $status $http_user_agent'
 ```
-```
-2022-08-06T06:53:55+08:00 INFO - 127.0.0.1 "GET /" 200 Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36
-```
 
-Log remote-user
-```
-dufs --log-format '$remote_addr $remote_user "$request" $status' -a /@admin:admin -a /folder1@user1:pass1
-```
-```
-2022-08-06T07:04:37+08:00 INFO - 127.0.0.1 admin "GET /" 200
-```
+---
 
-## Environment variables
+## Access Control
 
-All options can be set using environment variables prefixed with `DUFS_`.
+Dufs uses account-based auth with role permissions.
+
+### Syntax
 
 ```
-[serve-path]                DUFS_SERVE_PATH="."
-    --config <file>         DUFS_CONFIG=config.yaml
--b, --bind <addrs>          DUFS_BIND=0.0.0.0
--p, --port <port>           DUFS_PORT=5000
-    --path-prefix <path>    DUFS_PATH_PREFIX=/dufs
-    --hidden <value>        DUFS_HIDDEN=tmp,*.log,*.lock
--a, --auth <rules>          DUFS_AUTH="admin:admin@/:rw|@/" 
--A, --allow-all             DUFS_ALLOW_ALL=true
-    --allow-upload          DUFS_ALLOW_UPLOAD=true
-    --allow-delete          DUFS_ALLOW_DELETE=true
-    --allow-search          DUFS_ALLOW_SEARCH=true
-    --allow-symlink         DUFS_ALLOW_SYMLINK=true
-    --allow-archive         DUFS_ALLOW_ARCHIVE=true
-    --allow-hash            DUFS_ALLOW_HASH=true
-    --enable-cors           DUFS_ENABLE_CORS=true
-    --render-index          DUFS_RENDER_INDEX=true
-    --render-try-index      DUFS_RENDER_TRY_INDEX=true
-    --render-spa            DUFS_RENDER_SPA=true
-    --assets <path>         DUFS_ASSETS=./assets
-    --log-format <format>   DUFS_LOG_FORMAT=""
-    --log-file <file>       DUFS_LOG_FILE=./dufs.log
-    --compress <compress>   DUFS_COMPRESS=low
-    --tls-cert <path>       DUFS_TLS_CERT=cert.pem
-    --tls-key <path>        DUFS_TLS_KEY=key.pem
+dufs -a <account>@<paths>:<role>[,...]
+
+account  := username:password    # plain text
+          username:$hashed_pass  # sha-512 hashed (must be quoted)
+paths    := path1,path2,...      # comma-separated, root = /
+role     := rw | ro             # read-write | read-only (ro is default)
+@ alone  := anonymous user
 ```
+
+### Auth examples
+
+```sh
+# admin has full access; guest (and all others) can only read
+dufs -a 'admin:password123@/:rw' -a '@/'
+
+# user can write to /projects, read-only everywhere else
+dufs -a 'user:pass@/:rw,/public' -a '@/'
+
+# anonymous write to /uploads only
+dufs -a '@/uploads:rw' -a '@/'
+```
+
+### Hashed passwords
+
+```sh
+# Generate a SHA-512 hash
+openssl passwd -6 your-password
+# $6$rounds=656000$xyz...abc
+
+# Use it (enclose in single quotes — the $ chars must be protected)
+dufs -a 'admin:$6$rounds=656000$xyz...abc@/:rw'
+```
+
+> ⚠️ Digest auth does **not** work with hashed passwords. Use basic auth in that case.
+
+---
+
+## Environment Variables
+
+All CLI options can be set via `DUFS_`-prefixed environment variables:
+
+```sh
+export DUFS_PORT=8080
+export DUFS_ALLOW_ALL=true
+export DUFS_AUTH="admin:secret@/:rw|@/"
+export DUFS_ASSETS=./my-assets/
+```
+
+| CLI Option | Environment Variable | Example Value |
+|------------|---------------------|---------------|
+| `serve-path` | `DUFS_SERVE_PATH` | `.` |
+| `-b` `--bind` | `DUFS_BIND` | `0.0.0.0` |
+| `-p` `--port` | `DUFS_PORT` | `5000` |
+| `--path-prefix` | `DUFS_PATH_PREFIX` | `/dufs` |
+| `--hidden` | `DUFS_HIDDEN` | `tmp,*.log` |
+| `-a` `--auth` | `DUFS_AUTH` | `admin:pass@/:rw\|@/` |
+| `-A` `--allow-all` | `DUFS_ALLOW_ALL` | `true` |
+| `--allow-upload` | `DUFS_ALLOW_UPLOAD` | `true` |
+| `--allow-delete` | `DUFS_ALLOW_DELETE` | `true` |
+| `--allow-search` | `DUFS_ALLOW_SEARCH` | `true` |
+| `--allow-symlink` | `DUFS_ALLOW_SYMLINK` | `true` |
+| `--allow-archive` | `DUFS_ALLOW_ARCHIVE` | `true` |
+| `--allow-hash` | `DUFS_ALLOW_HASH` | `true` |
+| `--enable-cors` | `DUFS_ENABLE_CORS` | `true` |
+| `--render-index` | `DUFS_RENDER_INDEX` | `true` |
+| `--render-try-index` | `DUFS_RENDER_TRY_INDEX` | `true` |
+| `--render-spa` | `DUFS_RENDER_SPA` | `true` |
+| `--assets` | `DUFS_ASSETS` | `./assets/` |
+| `--log-format` | `DUFS_LOG_FORMAT` | `'$remote_addr "$request" $status'` |
+| `--log-file` | `DUFS_LOG_FILE` | `./dufs.log` |
+| `--compress` | `DUFS_COMPRESS` | `medium` |
+| `--tls-cert` | `DUFS_TLS_CERT` | `cert.pem` |
+| `--tls-key` | `DUFS_TLS_KEY` | `key.pem` |
+
+---
 
 ## Configuration File
 
-You can specify and use the configuration file by selecting the option `--config <path-to-config.yaml>`.
-
-The following are the configuration items:
+All options can be stored in a YAML file:
 
 ```yaml
-serve-path: '.'
+# config.yaml
+serve-path: '/mnt/storage'
 bind: 0.0.0.0
 port: 5000
-path-prefix: /dufs
+path-prefix: /files
 hidden:
-  - tmp
-  - '*.log'
+  - '.*'
+  - '*/node_modules'
   - '*.lock'
 auth:
-  - admin:admin@/:rw
-  - user:pass@/src:rw,/share
-  - '@/'  # According to the YAML spec, quoting is required.
+  - 'admin:admin@/:rw'
+  - '@/'
 allow-all: false
 allow-upload: true
 allow-delete: true
@@ -386,41 +424,149 @@ allow-search: true
 allow-symlink: true
 allow-archive: true
 allow-hash: true
-enable-cors: true
-render-index: true
-render-try-index: true
-render-spa: true
+enable-cors: false
+render-index: false
+render-spa: false
 assets: ./assets/
 log-format: '$remote_addr "$request" $status $http_user_agent'
 log-file: ./dufs.log
 compress: low
-tls-cert: tests/data/cert.pem
-tls-key: tests/data/key_pkcs1.pem
+# tls-cert: ./cert.pem
+# tls-key: ./key.pem
 ```
 
-### Customize UI
-
-Dufs allows users to customize the UI with your own assets.
-
-```
-dufs --assets my-assets-dir/
+```sh
+dufs --config config.yaml
 ```
 
-> If you only need to make slight adjustments to the current UI, you copy dufs's [assets](https://github.com/sigoden/dufs/tree/main/assets) directory and modify it accordingly. The current UI doesn't use any frameworks, just plain HTML/JS/CSS. As long as you have some basic knowledge of web development, it shouldn't be difficult to modify.
+---
 
-Your assets folder must contains a `index.html` file.
+## Custom UI
 
-`index.html` can use the following placeholder variables to retrieve internal data.
+Dufs serves its web UI from a built-in `assets/` directory. You can override it entirely:
 
-- `__INDEX_DATA__`: directory listing data
-- `__ASSETS_PREFIX__`: assets url prefix
+```
+dufs --assets ./my-custom-assets/
+```
 
-</details>
+Your assets folder **must** contain `index.html`. Two placeholder variables are available inside it:
+
+| Placeholder | Description |
+|------------|-------------|
+| `__INDEX_DATA__` | Base64-encoded directory listing data (required) |
+| `__ASSETS_PREFIX__` | URL prefix for linking CSS/JS assets |
+
+### Minimal custom index.html
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" href="__ASSETS_PREFIX__index.css">
+</head>
+<body>
+  <div id="app"></div>
+  <template id="index-data">__INDEX_DATA__</template>
+  <script src="__ASSETS_PREFIX__index.js"></script>
+</body>
+</html>
+```
+
+The JS bundle (`index.js`) handles all interactions — listing, upload, download, search, auth, and the text editor. It is self-contained and does not depend on any CDN.
+
+---
+
+## API
+
+### Upload a file
+
+```sh
+curl -T path-to-file http://127.0.0.1:5000/new-path/path-to-file
+```
+
+### Download a file
+
+```sh
+curl http://127.0.0.1:5000/path-to-file           # download
+curl http://127.0.0.1:5000/path-to-file?hash     # SHA-256 hash
+```
+
+### Download a folder as ZIP
+
+```sh
+curl -o folder.zip http://127.0.0.1:5000/folder?zip
+```
+
+### Delete a file or folder
+
+```sh
+curl -X DELETE http://127.0.0.1:5000/path-to-file-or-folder
+```
+
+### Create a directory
+
+```sh
+curl -X MKCOL http://127.0.0.1:5000/new-folder
+```
+
+### Move / rename a file or folder
+
+```sh
+curl -X MOVE http://127.0.0.1:5000/path \
+  -H "Destination: http://127.0.0.1:5000/new-path"
+```
+
+### Search
+
+```sh
+curl 'http://127.0.0.1:5000?q=Dockerfile'       # fuzzy name search
+curl 'http://127.0.0.1:5000?simple'             # names only, like `ls -1`
+curl 'http://127.0.0.1:5000?json'               # JSON output
+```
+
+### Resumable download
+
+```sh
+curl -C- -o file http://127.0.0.1:5000/file
+```
+
+### Resumable upload (20MB+ files)
+
+```sh
+offset=$(curl -I -s http://127.0.0.1:5000/file | grep -i content-length | awk '{print $2}')
+dd skip=$offset if=file bs=1 | \
+  curl -X PATCH -H "X-Update-Range: append" \
+       --data-binary @- http://127.0.0.1:5000/file
+```
+
+### Health check
+
+```sh
+curl http://127.0.0.1:5000/__dufs__/health
+```
+
+---
+
+## WebDAV
+
+Dufs exposes a WebDAV endpoint at the root path. You can mount it as a network drive:
+
+| OS | Command |
+|----|---------|
+| **Windows** (File Explorer) | `\\127.0.0.1@5000\Dufs\` or Map Network Drive → `http://127.0.0.1:5000/` |
+| **macOS** (Finder) | Go → Connect to Server → `http://127.0.0.1:5000/` |
+| **Linux** (GNOME Files) | Connect to Server → `dav://127.0.0.1:5000/` |
+| **Linux** (CLI) | `rclone mount dufs:/ /mnt/dufs --daemon` |
+
+> For write access via WebDAV, start dufs with `-A` or `--allow-upload --allow-delete`.
+
+---
 
 ## License
 
-Copyright (c) 2022-2024 dufs-developers.
+Copyright (c) 2022-2025 dufs-developers.
 
-dufs is made available under the terms of either the MIT License or the Apache License 2.0, at your option.
+Dufs is made available under the terms of either the **MIT License** or the **Apache License 2.0**, at your option.
 
-See the LICENSE-APACHE and LICENSE-MIT files for license details.
+See the [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) files for details.
