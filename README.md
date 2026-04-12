@@ -1,39 +1,63 @@
-# Dufs 文件服务器
+# Dufs 文件服务器（中文界面版）
 
 [![CI](https://github.com/sigoden/dufs/actions/workflows/ci.yaml/badge.svg)](https://github.com/sigoden/dufs/actions/workflows/ci.yaml)
 [![Crates](https://img.shields.io/crates/v/dufs.svg)](https://crates.io/crates/dufs)
-[![Docker Pulls](https://img.shields.io/docker/pulls/sigoden/dufs)](https://hub.docker.com/r/sigoden/dufs)
+[![Docker Pulls](https://img.shields.io/docker/pulls/mobufan/dufs-zh)](https://hub.docker.com/r/mobufan/dufs-zh)
+[![Multi-Platform](https://img.shields.io/badge/支持%20amd64%2Barm64-绿色)](https://hub.docker.com/r/mobufan/dufs-zh)
 
-Dufs 是一款**独具特色的实用文件服务器**，支持静态文件服务、上传、搜索、权限控制、WebDAV，并内置现代化 Web 界面。
+Dufs 是一款**独具特色的实用文件服务器**，支持静态文件服务、上传、搜索、权限控制、WebDAV，并内置**中文界面**。
 
 ![界面预览](https://user-images.githubusercontent.com/4012553/220513063-ff0f186b-ac54-4682-9af4-47a9781dee0d.png)
 
 ## 功能特性
 
-- 🖥️  **现代化 Web 界面** — 毛玻璃顶栏、平滑动画、文件类型标签、明暗主题自动切换
-- 📁  **静态文件服务** — 支持任意目录或单个文件
-- ⬆️  **文件上传** — 拖拽上传、断点续传（20MB+）、文件夹上传
-- 📦  **ZIP 下载** — 一键将文件夹打包下载
-- ✏️  **在线编辑** — 浏览器内直接创建、编辑文本文件
-- 🔍  **即时搜索** — 文件名模糊搜索
-- 🔐  **权限控制** — 用户名密码认证，支持读写/只读角色
-- 🌐  **WebDAV** — 挂载为网络驱动器（Windows / macOS / Linux）
-- 🔒  **HTTPS** — 内置 TLS/SSL 支持
-- 🌈  **CORS 跨域** — 轻松对接前端应用
-- 🎨  **自定义界面** — 替换 assets 目录实现完全定制
+- 🖥️ **现代化 Web 界面** — 毛玻璃顶栏，平滑动画、文件类型标签，明暗主题自动切换
+- 📁 **静态文件服务** — 支持任意目录或单个文件
+- ⬆️ **文件上传** — 拖拽上传、断点续传（20MB+）、文件夹上传
+- 📦 **ZIP 下载** — 一键将文件夹打包下载
+- ✏️ **在线编辑** — 浏览器内直接创建、编辑文本文件
+- 🔍 **即时搜索** — 文件名模糊搜索
+- 🔐 **权限控制** — 用户名密码认证，支持读写/只读角色
+- 🌐 **WebDAV** — 挂载为网络驱动器（Windows / macOS / Linux）
+- 🔒 **HTTPS** — 内置 TLS/SSL 支持
+- 🌈 **CORS 跨域** — 轻松对接前端应用
+- 🎨 **自定义界面** — 替换 assets 目录实现完全定制
 
 ---
 
 ## 快速上手
 
-```sh
-# macOS / Linux / Windows（下载二进制）
-./dufs
+### 使用 Docker（推荐）
 
-# Docker — 将当前目录映射到容器
-docker run -v $(pwd):/data -p 5000:5000 --rm sigoden/dufs /data
+```sh
+# 拉取镜像
+docker pull mobufan/dufs-zh:latest
+
+# 运行（将当前目录映射到容器）
+docker run -v $(pwd):/data -p 5000:5000 --rm mobufan/dufs-zh:latest /data
+```
+
+> Windows PowerShell：
+> ```powershell
+> docker run -v ${pwd}:/data -p 5000:5000 --rm mobufan/dufs-zh:latest /data
+> ```
+
+### 下载二进制
+
+从 [GitHub Releases](https://github.com/sigoden/dufs/releases) 下载对应平台版本，解压后将 `dufs` 加入系统 PATH。
+
+### 编译安装
+
+```sh
+# macOS / Linux — Homebrew
+brew install dufs
+
+# Rust — Cargo
+cargo install dufs
 
 # 从源码构建
+git clone https://github.com/sigoden/dufs.git
+cd dufs
 cargo build --release
 ./target/release/dufs
 ```
@@ -42,146 +66,201 @@ cargo build --release
 
 ---
 
-## 安装
+## 部署教程
 
-### 二进制文件（所有平台）
+### Docker 部署
 
-从 [GitHub Releases](https://github.com/sigoden/dufs/releases) 下载对应平台版本，解压后将 `dufs` 加入系统 PATH。
+> ✅ **支持多架构**：amd64（Intel/AMD）、arm64（Apple Silicon / ARM 服务器）
 
-| 平台 | 架构 | 文件格式 |
-|------|------|---------|
-| Linux | x86_64 / aarch64 / armv7 / i386 | `dufs-*-linux-*.tar.gz` |
-| macOS | x86_64 / aarch64 (Apple Silicon) | `dufs-*-macos-*.tar.gz` |
-| Windows | x86_64 / i386 | `dufs-*-windows-*.zip` |
-
-### 包管理器
+#### 方式一：直接使用现成镜像
 
 ```sh
-# macOS — Homebrew
-brew install dufs
+# 拉取镜像
+docker pull mobufan/dufs-zh:latest
 
-# Linux — npm（via npx）
-npx dufs
+# 基础运行（只读浏览）
+docker run -d \
+  --name dufs \
+  -v /your/data/path:/data \
+  -p 5000:5000 \
+  --restart unless-stopped \
+  mobufan/dufs-zh:latest /data
 
-# Rust — Cargo
-cargo install dufs
+# 开启全部操作权限（上传/删除/新建/编辑）
+docker run -d \
+  --name dufs \
+  -v /your/data/path:/data \
+  -p 5000:5000 \
+  --restart unless-stopped \
+  mobufan/dufs-zh:latest /data -A
 ```
 
----
+#### 方式二：使用 Docker Compose
 
-## Docker
+创建 `docker-compose.yml`：
 
-### 拉取现成镜像（推荐）
+```yaml
+version: '3.8'
+
+services:
+  dufs:
+    image: mobufan/dufs-zh:latest
+    container_name: dufs
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - /your/data/path:/data
+    command: /data -A  # 添加 -A 开启全部权限
+```
+
+启动服务：
 
 ```sh
-docker pull sigoden/dufs
+docker-compose up -d
 ```
 
-支持多架构：`linux/amd64`、`linux/arm64`、`linux/arm/v7`。
-
-### 运行 — 常见场景
-
-**只读浏览当前目录**
-
-```sh
-docker run -v $(pwd):/data -p 5000:5000 --rm sigoden/dufs /data
-```
-
-> Windows PowerShell：`docker run -v ${pwd}:/data -p 5000:5000 --rm sigoden/dufs /data`
-> Windows CMD：`docker run -v "%cd%":/data -p 5000:5000 --rm sigoden/dufs /data`
-
-**开启全部操作权限（上传 / 删除 / 新建）**
-
-```sh
-docker run -v /path/to/your/folder:/data -p 5000:5000 --rm sigoden/dufs /data -A
-```
+### 常见部署场景
 
 **指定子目录并开放写入**
 
 ```sh
-docker run -v /mnt/shared:/mnt/shared -p 5000:5000 --rm sigoden/dufs /mnt/shared/media -A
+docker run -d \
+  --name dufs \
+  -v /mnt/shared:/mnt/shared \
+  -p 5000:5000 \
+  --restart unless-stopped \
+  mobufan/dufs-zh:latest /mnt/shared/media -A
 ```
 
 **加用户名密码保护**
 
 ```sh
-docker run -v $(pwd):/data -p 5000:5000 --rm sigoden/dufs /data \
+docker run -d \
+  --name dufs \
+  -v $(pwd):/data \
+  -p 5000:5000 \
+  --restart unless-stopped \
+  mobufan/dufs-zh:latest /data \
   -a admin:你的密码@/:rw
 ```
 
 **HTTPS — 配合 TLS 证书**
 
 ```sh
-docker run -v $(pwd):/data -v /path/to/certs:/certs \
-  -p 443:443 --rm sigoden/dufs /data \
+docker run -d \
+  --name dufs \
+  -v $(pwd):/data \
+  -v /path/to/certs:/certs \
+  -p 443:443 \
+  --restart unless-stopped \
+  mobufan/dufs-zh:latest /data \
   --tls-cert /certs/server.crt --tls-key /certs/server.key
 ```
 
 **指定 IP / 自定义端口**
 
 ```sh
-docker run -v $(pwd):/data -p 192.168.1.100:8080:8080 --rm sigoden/dufs /data -p 8080
+docker run -d \
+  --name dufs \
+  -v $(pwd):/data \
+  -p 192.168.1.100:8080:8080 \
+  --restart unless-stopped \
+  mobufan/dufs-zh:latest /data -p 8080
 ```
 
-**Unix Socket（仅 Linux）**
+### 管理命令
 
 ```sh
-docker run -v /run:/run -v $(pwd):/data --rm --network none sigoden/dufs /data \
-  -b /run/dufs.sock
+# 查看运行状态
+docker ps | grep dufs
+
+# 查看日志
+docker logs -f dufs
+
+# 停止服务
+docker stop dufs
+
+# 启动服务
+docker start dufs
+
+# 重启服务
+docker restart dufs
+
+# 删除容器
+docker stop dufs && docker rm dufs
 ```
 
-### 从源码构建镜像
+---
 
-#### 用 cargo 构建（交叉编译到 Linux musl，支持多架构）
+## 构建自定义镜像
+
+### 从源码构建（推荐）
 
 ```sh
-# 克隆仓库
+# 1. 克隆仓库
 git clone https://github.com/sigoden/dufs.git
 cd dufs
 
-# 构建镜像（同时输出 linux/amd64 + linux/arm64）
-docker build -t my-dufs .
+# 2. 替换 assets 目录的静态文件（可选）
+# 将汉化后的 index.html 和 index.js 复制到 assets 目录
 
-# 指定标签
-docker build -t my-dufs:v1.0 .
+# 3. 构建镜像
+docker build -t mobufan/dufs-zh:latest .
+
+# 4. 推送镜像到 Docker Hub（需要先登录）
+docker login
+docker push mobufan/dufs-zh:latest
 ```
 
-#### 用 Alpine 构建（下载 Release 二进制，无需 Rust 工具链）
+> **提示**：确保镜像名称与你的 Docker Hub 用户名一致，否则无法推送。
+
+### 使用 Docker Buildx 构建多架构镜像
+
+> 💡 **提示**：Docker 默认使用 `docker` 驱动，不支持多架构构建。需要先切换到 `docker-container` 驱动。
+
+```sh
+# 1. 启用 experimental 功能
+export DOCKER_CLI_EXPERIMENTAL=enabled
+
+# 2. 创建并使用 buildx builder
+docker buildx create --name mybuilder --use
+
+# 3. 启动 builder（首次需要）
+docker buildx inspect mybuilder --bootstrap
+
+# 4. 构建并推送多架构镜像（amd64 + arm64）
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t mobufan/dufs-zh:latest \
+  --push \
+  .
+```
+
+**或者先切换驱动再构建**：
+
+```sh
+# 切换到 docker-container 驱动
+docker buildx create --name mybuilder --driver docker-container --use
+docker buildx inspect mybuilder --bootstrap
+
+# 然后执行构建命令
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t mobufan/dufs-zh:latest \
+  --push \
+  .
+```
+
+### 从 Release 二进制构建（无需 Rust 工具链）
 
 ```sh
 docker build \
   --build-arg REPO=sigoden/dufs \
   --build-arg VER=0.45.0 \
-  -t my-dufs:v0.45.0 \
+  -t mobufan/dufs-zh:latest \
   -f Dockerfile-release \
   .
-```
-
-### 打包自定义 UI 的镜像
-
-修改了 `assets/` 目录后，按如下方式打包：
-
-```dockerfile
-# Dockerfile.custom
-FROM --platform=linux/amd64 messense/rust-musl-cross:x86_64-musl AS builder
-WORKDIR /src
-COPY . .
-RUN cargo install --path . --root /
-
-FROM alpine:latest
-RUN apk add --no-cache ca-certificates
-COPY --from=builder /bin/dufs /usr/local/bin/dufs
-COPY ./assets/ /app/assets/
-WORKDIR /app
-EXPOSE 5000
-CMD ["dufs", "/data", "--assets", "/app/assets/"]
-```
-
-构建并运行：
-
-```sh
-docker build -f Dockerfile.custom -t my-dufs:custom .
-docker run -v $(pwd):/data -p 5000:5000 --rm my-dufs:custom
 ```
 
 ---
@@ -272,7 +351,7 @@ dufs --render-index
 
 ```sh
 # admin:123456 完全权限，其他人只读
-dufs -a 'admin:123456@/:rw' -a '@/'
+dufs -a 'admin:密码@/:rw' -a '@/'
 
 # 多用户不同权限
 dufs -a 'admin:密码@/:rw' -a 'viewer:只读密码@/public'
@@ -561,6 +640,14 @@ Dufs 在根路径暴露了 WebDAV 端点，可直接挂载为网络驱动器：
 | **Linux**（命令行）| `rclone mount dufs:/ /mnt/dufs --daemon` |
 
 > 若需通过 WebDAV 写入，请以 `-A` 或 `--allow-upload --allow-delete` 启动 dufs。
+
+---
+
+## 相关链接
+
+- **上游项目**：https://github.com/sigoden/dufs
+- **Docker 镜像**：https://hub.docker.com/r/mobufan/dufs-zh
+- **支持的架构**：linux/amd64、linux/arm64
 
 ---
 
