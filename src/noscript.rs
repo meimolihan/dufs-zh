@@ -18,7 +18,7 @@ pub fn detect_noscript(user_agent: &str) -> bool {
 pub fn generate_noscript_html(data: &IndexData) -> Result<String> {
     let mut html = String::new();
 
-    let title = format!("{} - Dufs 文件管理器", escape_str_pcdata(&data.href));
+    let title = format!("Index of {}", escape_str_pcdata(&data.href));
 
     html.push_str("<html>\n");
     html.push_str("<head>\n");
@@ -39,9 +39,6 @@ pub fn generate_noscript_html(data: &IndexData) -> Result<String> {
     html.push_str("<body>\n");
     html.push_str(&format!("<h1>{title}</h1>\n"));
     html.push_str("<table>\n");
-    html.push_str("  <thead>\n");
-    html.push_str("    <tr><th>名称</th><th>最后修改时间</th><th>大小</th></tr>\n");
-    html.push_str("  </thead>\n");
     html.push_str("  <tbody>\n");
     html.push_str(&format!("    {}\n", render_parent()));
 
@@ -81,12 +78,12 @@ fn format_mtime(mtime: u64) -> Option<String> {
 
 fn format_size(size: u64, path_type: PathType) -> String {
     if path_type.is_dir() {
-        let unit = "项";
+        let unit = if size == 1 { "item" } else { "items" };
         let num = match size >= MAX_SUBPATHS_COUNT {
             true => format!(">{}", MAX_SUBPATHS_COUNT - 1),
             false => size.to_string(),
         };
-        format!("{num} 项")
+        format!("{num} {unit}")
     } else {
         if size == 0 {
             return "0 B".to_string();

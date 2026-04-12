@@ -49,7 +49,7 @@ pub async fn get_file_mtime_and_mode(path: &Path) -> Result<(DateTime<Utc>, u16)
 pub fn try_get_file_name(path: &Path) -> Result<&str> {
     path.file_name()
         .and_then(|v| v.to_str())
-        .ok_or_else(|| anyhow!("无法获取文件 `{}` 的文件名", path.display()))
+        .ok_or_else(|| anyhow!("Failed to get file name of `{}`", path.display()))
 }
 
 pub fn glob(pattern: &str, target: &str) -> bool {

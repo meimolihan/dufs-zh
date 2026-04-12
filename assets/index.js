@@ -53,16 +53,15 @@ const IFRAME_FORMATS = [
 const MAX_SUBPATHS_COUNT = 1000;
 
 const ICONS = {
-  dir: `<svg height="18" viewBox="0 0 14 16" width="18"><path fill-rule="evenodd" d="M13 4H7V3c0-.66-.31-1-1-1H1c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1zM6 4H1V3h5v1z"></path></svg>`,
-  symlinkFile: `<svg height="18" viewBox="0 0 12 16" width="18"><path fill-rule="evenodd" d="M8.5 1H1c-.55 0-1 .45-1 1v12c0 .55.45 1 1 1h10c.55 0 1-.45 1-1V4.5L8.5 1zM11 14H1V2h7l3 3v9zM6 4.5l4 3-4 3v-2c-.98-.02-1.84.22-2.55.7-.71.48-1.19 1.25-1.45 2.3.02-1.64.39-2.88 1.13-3.73.73-.84 1.69-1.27 2.88-1.27v-2H6z"></path></svg>`,
-  symlinkDir: `<svg height="18" viewBox="0 0 14 16" width="18"><path fill-rule="evenodd" d="M13 4H7V3c0-.66-.31-1-1-1H1c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1zM1 3h5v1H1V3zm6 9v-2c-.98-.02-1.84.22-2.55.7-.71.48-1.19 1.25-1.45 2.3.02-1.64.39-2.88 1.13-3.73C4.86 8.43 5.82 8 7.01 8V6l4 3-4 3H7z"></path></svg>`,
-  file: `<svg height="18" viewBox="0 0 12 16" width="18"><path fill-rule="evenodd" d="M6 5H2V4h4v1zM2 8h7V7H2v1zm0 2h7V9H2v1zm0 2h7v-1H2v1zm10-7.5V14c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1V2c0-.55.45-1 1-1h7.5L12 4.5zM11 5L8 2H1v12h10V5z"></path></svg>`,
-  download: `<svg width="14" height="14" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>`,
-  move: `<svg width="14" height="14" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5z"/></svg>`,
-  edit: `<svg width="14" height="14" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>`,
-  delete: `<svg width="14" height="14" viewBox="0 0 16 16"><path d="M6.854 7.146a.5.5 0 1 0-.708.708L7.293 9l-1.147 1.146a.5.5 0 0 0 .708.708L8 9.707l1.146 1.147a.5.5 0 0 0 .708-.708L8.707 9l1.147-1.146a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146z"/><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/></svg>`,
-  view: `<svg width="14" height="14" viewBox="0 0 16 16"><path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1"/></svg>`,
-  home: `<svg width="14" height="14" viewBox="0 0 16 16"><path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5z"/></svg>`,
+  dir: `<svg height="16" viewBox="0 0 14 16" width="14"><path fill-rule="evenodd" d="M13 4H7V3c0-.66-.31-1-1-1H1c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1zM6 4H1V3h5v1z"></path></svg>`,
+  symlinkFile: `<svg height="16" viewBox="0 0 12 16" width="12"><path fill-rule="evenodd" d="M8.5 1H1c-.55 0-1 .45-1 1v12c0 .55.45 1 1 1h10c.55 0 1-.45 1-1V4.5L8.5 1zM11 14H1V2h7l3 3v9zM6 4.5l4 3-4 3v-2c-.98-.02-1.84.22-2.55.7-.71.48-1.19 1.25-1.45 2.3.02-1.64.39-2.88 1.13-3.73.73-.84 1.69-1.27 2.88-1.27v-2H6z"></path></svg>`,
+  symlinkDir: `<svg height="16" viewBox="0 0 14 16" width="14"><path fill-rule="evenodd" d="M13 4H7V3c0-.66-.31-1-1-1H1c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1zM1 3h5v1H1V3zm6 9v-2c-.98-.02-1.84.22-2.55.7-.71.48-1.19 1.25-1.45 2.3.02-1.64.39-2.88 1.13-3.73C4.86 8.43 5.82 8 7.01 8V6l4 3-4 3H7z"></path></svg>`,
+  file: `<svg height="16" viewBox="0 0 12 16" width="12"><path fill-rule="evenodd" d="M6 5H2V4h4v1zM2 8h7V7H2v1zm0 2h7V9H2v1zm0 2h7v-1H2v1zm10-7.5V14c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1V2c0-.55.45-1 1-1h7.5L12 4.5zM11 5L8 2H1v12h10V5z"></path></svg>`,
+  download: `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>`,
+  move: `<svg width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5z"/></svg>`,
+  edit: `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>`,
+  delete: `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M6.854 7.146a.5.5 0 1 0-.708.708L7.293 9l-1.147 1.146a.5.5 0 0 0 .708.708L8 9.707l1.146 1.147a.5.5 0 0 0 .708-.708L8.707 9l1.147-1.146a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146z"/><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/></svg>`,
+  view: `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1"/></svg>`,
 }
 
 /**
@@ -111,50 +110,12 @@ let $userName;
 window.addEventListener("DOMContentLoaded", async () => {
   const $indexData = document.getElementById('index-data');
   if (!$indexData) {
-    alert(I18N.cannotLoadData);
+    alert("No data");
     return;
   }
 
   DATA = JSON.parse(decodeBase64($indexData.innerHTML));
-  DIR_EMPTY_NOTE = PARAMS.q ? '没有找到匹配结果' : DATA.dir_exists ? '文件夹为空' : '上传文件后将自动创建文件夹';
-
-  const I18N = {
-    cannotLoadData: '无法加载数据',
-    done: '完成',
-    retry: '重试',
-    uploadProgress: '上传进度',
-    file: '文件',
-    edit: '编辑',
-    view: '查看',
-    download: '下载',
-    moveRename: '移动/重命名',
-    delete: '删除',
-    fileName: '名称',
-    modifiedTime: '最后修改时间',
-    size: '大小',
-    actions: '操作',
-    dir: '目录',
-    downloadFolderZip: '打包根目录并下载',
-    downloadAsZip: '下载为 ZIP',
-    moveOrRename: '移动或重命名',
-    newFolderName: '请输入文件夹名称：',
-    newFileName: '请输入文件名称：',
-    cannotEditBinaryOrLarge: '无法编辑：文件过大或是二进制格式',
-    uploadFailed: '上传失败',
-    downloadFailed: '下载失败',
-    saveFailed: '保存失败',
-    deleteFailed: '删除失败',
-    moveFailed: '移动失败',
-    createFolderFailed: '创建文件夹失败',
-    createFileFailed: '创建文件失败',
-    cannotFetchFile: '无法获取文件',
-    confirmDelete: '确定要删除',
-    cannotUndo: '吗？此操作不可恢复。',
-    targetExists: '目标文件已存在，是否覆盖？',
-    newPath: '请输入新的路径：',
-    rootDir: '根目录',
-    search: '搜索',
-  };
+  DIR_EMPTY_NOTE = PARAMS.q ? 'No results' : DATA.dir_exists ? 'Empty folder' : 'Folder will be created when a file is uploaded';
 
   await ready();
 });
@@ -173,17 +134,17 @@ async function ready() {
   addBreadcrumb(DATA.href, DATA.uri_prefix);
 
   if (DATA.kind === "Index") {
-    document.title = `${DATA.href} - Dufs`;
+    document.title = `Index of ${DATA.href} - Dufs`;
     document.querySelector(".index-page").classList.remove("hidden");
 
     await setupIndexPage();
   } else if (DATA.kind === "Edit") {
-    document.title = `编辑 ${DATA.href} - Dufs`;
+    document.title = `Edit ${DATA.href} - Dufs`;
     document.querySelector(".editor-page").classList.remove("hidden");
 
     await setupEditorPage();
   } else if (DATA.kind === "View") {
-    document.title = `查看 ${DATA.href} - Dufs`;
+    document.title = `View ${DATA.href} - Dufs`;
     document.querySelector(".editor-page").classList.remove("hidden");
 
     await setupEditorPage();
@@ -215,22 +176,18 @@ class Uploader {
     const encodedName = encodedStr(name);
     $uploadersTable.insertAdjacentHTML("beforeend", `
   <tr id="upload${idx}" class="uploader">
-    <td class="cell-icon">
+    <td class="path cell-icon">
       ${getPathSvg()}
     </td>
-    <td class="cell-name">
-      <li class="path"><a href="${url}">${encodedName}</a></li>
+    <td class="path cell-name">
+      <a href="${url}">${encodedName}</a>
     </td>
-    <td class="cell-status upload-status" id="uploadStatus${idx}">
-      <div class="upload-progress"><div class="upload-progress-bar" id="uploadBar${idx}" style="width:0%"></div></div>
-      <span class="upload-pct" id="uploadPct${idx}">0%</span>
-    </td>
+    <td class="cell-status upload-status" id="uploadStatus${idx}"></td>
   </tr>`);
     $uploadersTable.classList.remove("hidden");
     $emptyFolder.classList.add("hidden");
     this.$uploadStatus = document.getElementById(`uploadStatus${idx}`);
-    this.$uploadPct = document.getElementById(`uploadPct${idx}`);
-    this.$uploadBar = document.getElementById(`uploadBar${idx}`);
+    this.$uploadStatus.innerHTML = '-';
     this.$uploadStatus.addEventListener("click", e => {
       const nodeId = e.target.id;
       const matches = /^retry(\d+)$/.exec(nodeId);
@@ -295,18 +252,16 @@ class Uploader {
     const speed = (event.loaded - this.uploaded) / (now - this.lastUptime) * 1000;
     const [speedValue, speedUnit] = formatFileSize(speed);
     const speedText = `${speedValue} ${speedUnit}/s`;
-    const pct = ((event.loaded + this.uploadOffset) / this.file.size) * 100;
-    const progress = formatPercent(pct);
+    const progress = formatPercent(((event.loaded + this.uploadOffset) / this.file.size) * 100);
     const duration = formatDuration((event.total - event.loaded) / speed);
-    this.$uploadBar.style.width = Math.min(pct, 100) + '%';
-    this.$uploadPct.textContent = progress + ' ' + duration;
+    this.$uploadStatus.innerHTML = `<span style="width: 80px;">${speedText}</span><span>${progress} ${duration}</span>`;
     this.uploaded = event.loaded;
     this.lastUptime = now;
   }
 
   complete() {
     const $uploadStatusNew = this.$uploadStatus.cloneNode(true);
-    $uploadStatusNew.innerHTML = `<span class="upload-complete">✓ ${I18N.done}</span>`;
+    $uploadStatusNew.innerHTML = `✓`;
     this.$uploadStatus.parentNode.replaceChild($uploadStatusNew, this.$uploadStatus);
     this.$uploadStatus = null;
     failUploaders.delete(this.idx);
@@ -315,8 +270,7 @@ class Uploader {
   }
 
   fail(reason = "") {
-    this.$uploadBar.style.background = 'var(--danger)';
-    this.$uploadPct.innerHTML = `<span class="retry-btn" id="retry${this.idx}" title="${reason}">↻ ${I18N.retry}</span>`;
+    this.$uploadStatus.innerHTML = `<span style="width: 20px;" title="${reason}">✗</span><span class="retry-btn" id="retry${this.idx}" title="Retry">↻</span>`;
     failUploaders.set(this.idx, this);
     Uploader.runnings--;
     Uploader.runQueue();
@@ -376,7 +330,7 @@ function addBreadcrumb(href, uri_prefix) {
     }
     const encodedName = encodedStr(name);
     if (i === 0) {
-      $breadcrumb.insertAdjacentHTML("beforeend", `<a href="/" title="返回根目录">${ICONS.home}</a>`);
+      $breadcrumb.insertAdjacentHTML("beforeend", `<a href="${path}" title="Root"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5z"/></svg></a>`);
     } else if (i === len - 1) {
       $breadcrumb.insertAdjacentHTML("beforeend", `<b>${encodedName}</b>`);
     } else {
@@ -392,8 +346,7 @@ async function setupIndexPage() {
   if (DATA.allow_archive) {
     const $download = document.querySelector(".download");
     $download.href = baseUrl() + "?zip";
-    $download.title = "打包根目录并下载";
-    $download.setAttribute("aria-label", "打包根目录并下载");
+    $download.title = "Download folder as a .zip file";
     $download.classList.add("dlwt");
     $download.classList.remove("hidden");
   }
@@ -429,17 +382,17 @@ function renderPathsTableHead() {
     {
       name: "name",
       props: `colspan="2"`,
-      text: "名称",
+      text: "Name",
     },
     {
       name: "mtime",
       props: ``,
-      text: "最后修改时间",
+      text: "Last Modified",
     },
     {
       name: "size",
       props: ``,
-      text: "大小",
+      text: "Size",
     }
   ];
   $pathsTableHead.insertAdjacentHTML("beforeend", `
@@ -459,7 +412,7 @@ function renderPathsTableHead() {
     const icon = `<span>${svg}</span>`
     return `<th class="cell-${item.name}" ${item.props}><a href="?${qs}">${item.text}${icon}</a></th>`
   }).join("\n")}
-      <th class="cell-actions">${I18N.actions}</th>
+      <th class="cell-actions">Actions</th>
     </tr>
   `);
 }
@@ -477,19 +430,9 @@ function renderPathsTableBody() {
       addPath(DATA.paths[i], i);
     }
   } else {
+    $emptyFolder.textContent = DIR_EMPTY_NOTE;
     $emptyFolder.classList.remove("hidden");
   }
-}
-
-/**
- * Get file extension for badge
- * @param {string} name
- * @returns {string}
- */
-function getFileExt(name) {
-  const dot = name.lastIndexOf('.');
-  if (dot === -1 || dot === 0) return '';
-  return name.substring(dot + 1).toLowerCase();
 }
 
 /**
@@ -499,62 +442,62 @@ function getFileExt(name) {
  */
 function addPath(file, index) {
   const encodedName = encodedStr(file.name);
-  const rawName = file.name;
-  let url = newUrl(rawName);
+  let url = newUrl(file.name);
   let actionDelete = "";
   let actionDownload = "";
   let actionMove = "";
   let actionEdit = "";
   let actionView = "";
-  const isDir = file.path_type.endsWith("Dir");
-  const isSymlink = file.path_type.startsWith("Symlink");
-
-  // File-type badge
-  let badge = '';
-  if (isDir) {
-    badge = `<span class="file-type dir">dir</span>`;
-  } else {
-    const ext = getFileExt(rawName);
-    if (ext) badge = `<span class="file-type">${ext}</span>`;
-  }
-
+  let isDir = file.path_type.endsWith("Dir");
   if (isDir) {
     url += "/";
     if (DATA.allow_archive) {
       actionDownload = `
-      <a class="action-btn" href="${url}?zip" title="下载为 ZIP" download>${ICONS.download}</a>`;
+      <div class="action-btn">
+        <a class="dlwt" href="${url}?zip" title="Download folder as a .zip file" download>${ICONS.download}</a>
+      </div>`;
     }
   } else {
     actionDownload = `
-    <a class="action-btn" href="${url}" title="下载" download>${ICONS.download}</a>`;
+    <div class="action-btn" >
+      <a class="dlwt" href="${url}" title="Download file" download>${ICONS.download}</a>
+    </div>`;
   }
   if (DATA.allow_delete) {
     if (DATA.allow_upload) {
-      actionMove = `<div onclick="movePath(${index})" class="action-btn" id="moveBtn${index}" title="移动或重命名">${ICONS.move}</div>`;
+      actionMove = `<div onclick="movePath(${index})" class="action-btn" id="moveBtn${index}" title="Move & Rename">${ICONS.move}</div>`;
       if (!isDir) {
-        actionEdit = `<a class="action-btn" title="编辑" target="_blank" href="${url}?edit">${ICONS.edit}</a>`;
+        actionEdit = `<a class="action-btn" title="Edit file" target="_blank" href="${url}?edit">${ICONS.edit}</a>`;
       }
     }
-    actionDelete = `<div onclick="deletePath(${index})" class="action-btn" id="deleteBtn${index}" title="删除">${ICONS.delete}</div>`;
+    actionDelete = `
+    <div onclick="deletePath(${index})" class="action-btn" id="deleteBtn${index}" title="Delete">${ICONS.delete}</div>`;
   }
   if (!actionEdit && !isDir) {
-    actionView = `<a class="action-btn" title="查看" target="_blank" href="${url}?view">${ICONS.view}</a>`;
+    actionView = `<a class="action-btn" title="View file" target="_blank" href="${url}?view">${ICONS.view}</a>`;
   }
+  let actionCell = `
+  <td class="cell-actions">
+    ${actionDownload}
+    ${actionView}
+    ${actionMove}
+    ${actionDelete}
+    ${actionEdit}
+  </td>`;
 
-  let actionCell = `${actionDownload}${actionView}${actionMove}${actionDelete}${actionEdit}`;
   let sizeDisplay = isDir ? formatDirSize(file.size) : formatFileSize(file.size).join(" ");
 
   $pathsTableBody.insertAdjacentHTML("beforeend", `
-<tr id="addPath${index}" class="${isSymlink ? 'symlink-row' : ''}">
-  <td class="cell-icon">${getPathSvg(file.path_type)}</td>
-  <td class="cell-name">
-    <li class="path">
-      <a href="${url}" ${isDir ? "" : `target="_blank"`}>${encodedName}${badge ? ' ' + badge : ''}</a>
-    </li>
+<tr id="addPath${index}">
+  <td class="path cell-icon">
+    ${getPathSvg(file.path_type)}
+  </td>
+  <td class="path cell-name">
+    <a href="${url}" ${isDir ? "" : `target="_blank"`}>${encodedName}</a>
   </td>
   <td class="cell-mtime">${formatMtime(file.mtime)}</td>
   <td class="cell-size">${sizeDisplay}</td>
-  <td class="cell-actions">${actionCell}</td>
+  ${actionCell}
 </tr>`);
 }
 
@@ -608,7 +551,7 @@ function setupDownloadWithToken() {
         const tokengenUrl = new URL(originalHref);
         tokengenUrl.searchParams.set("tokengen", "");
         const res = await fetch(tokengenUrl);
-        if (!res.ok) throw new Error("获取令牌失败");
+        if (!res.ok) throw new Error("Failed to fetch token");
         const token = await res.text();
         const downloadUrl = new URL(originalHref);
         downloadUrl.searchParams.set("token", token);
@@ -619,7 +562,7 @@ function setupDownloadWithToken() {
         tempA.click();
         document.body.removeChild(tempA);
       } catch (err) {
-        alert(`${I18N.downloadFailed}：${err.message}`);
+        alert(`Failed to download, ${err.message}`);
       }
     });
   });
@@ -657,7 +600,7 @@ function setupNewFolder() {
   const $newFolder = document.querySelector(".new-folder");
   $newFolder.classList.remove("hidden");
   $newFolder.addEventListener("click", () => {
-    const name = prompt(I18N.newFolderName);
+    const name = prompt("Enter folder name");
     if (name) createFolder(name);
   });
 }
@@ -666,7 +609,7 @@ function setupNewFile() {
   const $newFile = document.querySelector(".new-file");
   $newFile.classList.remove("hidden");
   $newFile.addEventListener("click", () => {
-    const name = prompt(I18N.newFileName);
+    const name = prompt("Enter file name");
     if (name) createFile(name);
   });
 }
@@ -691,8 +634,8 @@ async function setupEditorPage() {
 
     const $deleteFile = document.querySelector(".delete-file");
     $deleteFile.classList.remove("hidden");
-    $deleteFile.title = "删除";
     $deleteFile.addEventListener("click", async () => {
+      const url = baseUrl();
       const name = baseName(url);
       await doDeletePath(name, url, () => {
         location.href = location.href.split("/").slice(0, -1).join("/");
@@ -702,7 +645,6 @@ async function setupEditorPage() {
     if (DATA.editable) {
       const $saveBtn = document.querySelector(".save-btn");
       $saveBtn.classList.remove("hidden");
-      $saveBtn.title = "保存修改";
       $saveBtn.addEventListener("click", saveChange);
     }
   } else if (DATA.kind == "View") {
@@ -711,12 +653,13 @@ async function setupEditorPage() {
 
   if (!DATA.editable) {
     const $notEditable = document.querySelector(".not-editable");
+    const url = baseUrl();
     const ext = extName(baseName(url));
     if (IFRAME_FORMATS.find(v => v === ext)) {
       $notEditable.insertAdjacentHTML("afterend", `<iframe src="${url}" sandbox width="100%" height="${window.innerHeight - 100}px"></iframe>`);
     } else {
       $notEditable.classList.remove("hidden");
-      $notEditable.textContent = I18N.cannotEditBinaryOrLarge;
+      $notEditable.textContent = "Cannot edit because file is too large or binary.";
     }
     return;
   }
@@ -735,7 +678,7 @@ async function setupEditorPage() {
       $editor.value = decoder.decode(dataView);
     }
   } catch (err) {
-    alert(`${I18N.cannotFetchFile}：${err.message}`);
+    alert(`Failed to get file, ${err.message}`);
   }
 }
 
@@ -759,7 +702,7 @@ async function deletePath(index) {
 }
 
 async function doDeletePath(name, url, cb) {
-  if (!confirm(`${I18N.confirmDelete} "${name}" ${I18N.cannotUndo}`)) return;
+  if (!confirm(`Delete \`${name}\`?`)) return;
   try {
     await checkAuth();
     const res = await fetch(url, {
@@ -768,7 +711,7 @@ async function doDeletePath(name, url, cb) {
     await assertResOK(res);
     cb();
   } catch (err) {
-    alert(`${I18N.deleteFailed}：${err.message}`);
+    alert(`Cannot delete \`${file.name}\`, ${err.message}`);
   }
 }
 
@@ -794,7 +737,7 @@ async function doMovePath(fileUrl) {
 
   const filePath = decodeURIComponent(fileUrlObj.pathname.slice(prefix.length));
 
-  let newPath = prompt(I18N.newPath, filePath);
+  let newPath = prompt("Enter new path", filePath);
   if (!newPath) return;
   if (!newPath.startsWith("/")) newPath = "/" + newPath;
   if (filePath === newPath) return;
@@ -806,7 +749,7 @@ async function doMovePath(fileUrl) {
       method: "HEAD",
     });
     if (res1.status === 200) {
-      if (!confirm(I18N.targetExists)) {
+      if (!confirm("Override existing file?")) {
         return;
       }
     }
@@ -819,7 +762,7 @@ async function doMovePath(fileUrl) {
     await assertResOK(res2);
     return newFileUrl;
   } catch (err) {
-    alert(`${I18N.moveFailed}：${err.message}`);
+    alert(`Cannot move \`${filePath}\` to \`${newPath}\`, ${err.message}`);
   }
 }
 
@@ -835,7 +778,7 @@ async function saveChange() {
     });
     location.reload();
   } catch (err) {
-    alert(`${I18N.saveFailed}：${err.message}`);
+    alert(`Failed to save file, ${err.message}`);
   }
 }
 
@@ -876,7 +819,7 @@ async function createFolder(name) {
     await assertResOK(res);
     location.href = url;
   } catch (err) {
-    alert(`${I18N.createFolderFailed}：${err.message}`);
+    alert(`Cannot create folder \`${name}\`, ${err.message}`);
   }
 }
 
@@ -891,7 +834,7 @@ async function createFile(name) {
     await assertResOK(res);
     location.href = url + "?edit";
   } catch (err) {
-    alert(`${I18N.createFileFailed}：${err.message}`);
+    alert(`Cannot create file \`${name}\`, ${err.message}`);
   }
 }
 
@@ -971,7 +914,7 @@ function padZero(value, size) {
 }
 
 function formatDirSize(size) {
-  const unit = "项";
+  const unit = size === 1 ? "item" : "items";
   const num = size >= MAX_SUBPATHS_COUNT ? `>${MAX_SUBPATHS_COUNT - 1}` : `${size}`;
   return ` ${num} ${unit}`;
 }
@@ -1012,7 +955,7 @@ function encodedStr(rawStr) {
 
 async function assertResOK(res) {
   if (!(res.status >= 200 && res.status < 300)) {
-    throw new Error(await res.text() || `无效的状态 ${res.status}`);
+    throw new Error(await res.text() || `Invalid status ${res.status}`);
   }
 }
 
@@ -1045,4 +988,3 @@ function decodeBase64(base64String) {
   }
   return new TextDecoder().decode(bytes);
 }
-

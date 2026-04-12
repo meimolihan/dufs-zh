@@ -27,7 +27,7 @@ pub fn build_cli() -> Command {
                 .env("DUFS_SERVE_PATH")
 				.hide_env(true)
                 .value_parser(value_parser!(PathBuf))
-                .help("指定要服务的路径 [默认: 当前目录]"),
+                .help("Specific path to serve [default: .]"),
         )
         .arg(
             Arg::new("config")
@@ -36,7 +36,7 @@ pub fn build_cli() -> Command {
                 .short('c')
                 .long("config")
                 .value_parser(value_parser!(PathBuf))
-                .help("指定配置文件")
+                .help("Specify configuration file")
                 .value_name("file"),
         )
         .arg(
@@ -45,7 +45,7 @@ pub fn build_cli() -> Command {
 				.hide_env(true)
                 .short('b')
                 .long("bind")
-                .help("指定绑定地址或 Unix 套接字")
+                .help("Specify bind address or unix socket")
                 .action(ArgAction::Append)
                 .value_delimiter(',')
                 .value_name("addrs"),
@@ -66,7 +66,7 @@ pub fn build_cli() -> Command {
 				.hide_env(true)
                 .long("path-prefix")
                 .value_name("path")
-                .help("指定路径前缀"),
+                .help("Specify a path prefix"),
         )
         .arg(
             Arg::new("hidden")
@@ -122,7 +122,7 @@ pub fn build_cli() -> Command {
 				.hide_env(true)
                 .long("allow-delete")
                 .action(ArgAction::SetTrue)
-                .help("允许删除文件/文件夹"),
+                .help("Allow delete files/folders"),
         )
         .arg(
             Arg::new("allow-search")
@@ -186,7 +186,7 @@ pub fn build_cli() -> Command {
 				.hide_env(true)
                 .long("render-spa")
                 .action(ArgAction::SetTrue)
-                .help("服务 SPA（单页应用）"),
+                .help("Serve SPA(Single Page Application)"),
         )
         .arg(
             Arg::new("assets")
@@ -434,8 +434,8 @@ impl Args {
 
             match (&args.tls_cert, &args.tls_key) {
                 (Some(_), Some(_)) => {}
-                (Some(_), _) => bail!("未设置 TLS 私钥"),
-                (_, Some(_)) => bail!("未设置 TLS 证书"),
+                (Some(_), _) => bail!("No tls-key set"),
+                (_, Some(_)) => bail!("No tls-cert set"),
                 (None, None) => {}
             }
         }
@@ -451,7 +451,7 @@ impl Args {
     fn sanitize_path<P: AsRef<Path>>(path: P) -> Result<PathBuf> {
         let path = path.as_ref();
         if !path.exists() {
-            bail!("路径 `{}` 不存在", path.display());
+            bail!("Path `{}` doesn't exist", path.display());
         }
 
         env::current_dir()
@@ -498,7 +498,7 @@ impl BindAddr {
         }
         #[cfg(not(unix))]
         if !invalid_addrs.is_empty() {
-            bail!("无效的绑定地址 `{}`", invalid_addrs.join(","));
+            bail!("Invalid bind address `{}`", invalid_addrs.join(","));
         }
         Ok(bind_addrs)
     }
@@ -756,4 +756,3 @@ hidden:
         assert_eq!(args.hidden, ["tmp", "*.log", "*.lock"]);
     }
 }
-
