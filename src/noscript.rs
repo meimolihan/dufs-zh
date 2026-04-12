@@ -39,6 +39,9 @@ pub fn generate_noscript_html(data: &IndexData) -> Result<String> {
     html.push_str("<body>\n");
     html.push_str(&format!("<h1>{title}</h1>\n"));
     html.push_str("<table>\n");
+    html.push_str("  <thead>\n");
+    html.push_str("    <tr><th>名称</th><th>修改时间</th><th>大小</th></tr>\n");
+    html.push_str("  </thead>\n");
     html.push_str("  <tbody>\n");
     html.push_str(&format!("    {}\n", render_parent()));
 

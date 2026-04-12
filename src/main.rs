@@ -46,7 +46,7 @@ async fn main() -> Result<()> {
         return Ok(());
     }
     let mut args = Args::parse(matches)?;
-    logger::init(args.log_file.clone()).map_err(|e| anyhow!("Failed to init logger, {e}"))?;
+    logger::init(args.log_file.clone()).map_err(|e| anyhow!("初始化日志失败，{e}"))?;
     let (new_addrs, print_addrs) = check_addrs(&args)?;
     args.addrs = new_addrs;
     let running = Arc::new(AtomicBool::new(true));

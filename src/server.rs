@@ -1050,7 +1050,7 @@ impl Server {
                 Some(0) => 0,
                 Some(1) => 1,
                 _ => {
-                    status_bad_request(res, "Invalid depth: only 0 and 1 are allowed.");
+                    status_bad_request(res, "无效的深度：仅支持 0 和 1");
                     return Ok(());
                 }
             },
@@ -1115,7 +1115,7 @@ impl Server {
         ensure_path_parent(&dest).await?;
 
         if self.guard_root_contained(&dest).await {
-            status_bad_request(res, "Invalid Destination");
+            status_bad_request(res, "无效的目标路径");
             return Ok(());
         }
 
@@ -1136,7 +1136,7 @@ impl Server {
         ensure_path_parent(&dest).await?;
 
         if self.guard_root_contained(&dest).await {
-            status_bad_request(res, "Invalid Destination");
+            status_bad_request(res, "无效的目标路径");
             return Ok(());
         }
 
@@ -1330,7 +1330,7 @@ impl Server {
         {
             Some(dest) => dest,
             None => {
-                status_bad_request(res, "Invalid Destination");
+                status_bad_request(res, "无效的目标路径");
                 return None;
             }
         };
@@ -1754,7 +1754,7 @@ fn extract_cache_headers(meta: &Metadata) -> Option<(ETag, LastModified)> {
 
 fn status_forbid(res: &mut Response) {
     *res.status_mut() = StatusCode::FORBIDDEN;
-    *res.body_mut() = body_full("Forbidden");
+    *res.body_mut() = body_full("禁止访问");
 }
 
 fn status_not_found(res: &mut Response) {
@@ -1856,7 +1856,7 @@ fn parse_upload_offset(headers: &HeaderMap<HeaderValue>, size: u64) -> Result<Op
         Some(v) => v,
         None => return Ok(None),
     };
-    let err = || anyhow!("Invalid X-Update-Range Header");
+    let err = || anyhow!("无效的 X-Update-Range 头");
     let value = value.to_str().map_err(|_| err())?;
     if value == "append" {
         return Ok(Some(size));

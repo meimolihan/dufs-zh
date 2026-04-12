@@ -111,12 +111,50 @@ let $userName;
 window.addEventListener("DOMContentLoaded", async () => {
   const $indexData = document.getElementById('index-data');
   if (!$indexData) {
-    alert("无法加载数据");
+    alert(I18N.cannotLoadData);
     return;
   }
 
   DATA = JSON.parse(decodeBase64($indexData.innerHTML));
   DIR_EMPTY_NOTE = PARAMS.q ? '没有找到匹配结果' : DATA.dir_exists ? '文件夹为空' : '上传文件后将自动创建文件夹';
+
+  const I18N = {
+    cannotLoadData: '无法加载数据',
+    done: '完成',
+    retry: '重试',
+    uploadProgress: '上传进度',
+    file: '文件',
+    edit: '编辑',
+    view: '查看',
+    download: '下载',
+    moveRename: '移动/重命名',
+    delete: '删除',
+    fileName: '文件名',
+    modifiedTime: '修改时间',
+    size: '大小',
+    actions: '操作',
+    dir: '目录',
+    downloadFolderZip: '下载文件夹为 ZIP',
+    downloadAsZip: '下载为 ZIP',
+    moveOrRename: '移动或重命名',
+    newFolderName: '请输入文件夹名称：',
+    newFileName: '请输入文件名称：',
+    cannotEditBinaryOrLarge: '无法编辑：文件过大或是二进制格式',
+    uploadFailed: '上传失败',
+    downloadFailed: '下载失败',
+    saveFailed: '保存失败',
+    deleteFailed: '删除失败',
+    moveFailed: '移动失败',
+    createFolderFailed: '创建文件夹失败',
+    createFileFailed: '创建文件失败',
+    cannotFetchFile: '无法获取文件',
+    confirmDelete: '确定要删除',
+    cannotUndo: '吗？此操作不可恢复。',
+    targetExists: '目标文件已存在，是否覆盖？',
+    newPath: '请输入新的路径：',
+    rootDir: '根目录',
+    search: '搜索',
+  };
 
   await ready();
 });
@@ -268,7 +306,7 @@ class Uploader {
 
   complete() {
     const $uploadStatusNew = this.$uploadStatus.cloneNode(true);
-    $uploadStatusNew.innerHTML = `<span class="upload-complete">✓ Done</span>`;
+    $uploadStatusNew.innerHTML = `<span class="upload-complete">✓ ${I18N.done}</span>`;
     this.$uploadStatus.parentNode.replaceChild($uploadStatusNew, this.$uploadStatus);
     this.$uploadStatus = null;
     failUploaders.delete(this.idx);
@@ -278,7 +316,7 @@ class Uploader {
 
   fail(reason = "") {
     this.$uploadBar.style.background = 'var(--danger)';
-    this.$uploadPct.innerHTML = `<span class="retry-btn" id="retry${this.idx}" title="${reason}">↻ 重试</span>`;
+    this.$uploadPct.innerHTML = `<span class="retry-btn" id="retry${this.idx}" title="${reason}">↻ ${I18N.retry}</span>`;
     failUploaders.set(this.idx, this);
     Uploader.runnings--;
     Uploader.runQueue();
@@ -391,17 +429,17 @@ function renderPathsTableHead() {
     {
       name: "name",
       props: `colspan="2"`,
-      text: "文件名",
+      text: I18N.fileName,
     },
     {
       name: "mtime",
       props: ``,
-      text: "修改时间",
+      text: I18N.modifiedTime,
     },
     {
       name: "size",
       props: ``,
-      text: "大小",
+      text: I18N.size,
     }
   ];
   $pathsTableHead.insertAdjacentHTML("beforeend", `
@@ -421,7 +459,7 @@ function renderPathsTableHead() {
     const icon = `<span>${svg}</span>`
     return `<th class="cell-${item.name}" ${item.props}><a href="?${qs}">${item.text}${icon}</a></th>`
   }).join("\n")}
-      <th class="cell-actions">Actions</th>
+      <th class="cell-actions">${I18N.actions}</th>
     </tr>
   `);
 }
@@ -575,7 +613,7 @@ function setupDownloadWithToken() {
         const tokengenUrl = new URL(originalHref);
         tokengenUrl.searchParams.set("tokengen", "");
         const res = await fetch(tokengenUrl);
-        if (!res.ok) throw new Error("Failed to fetch token");
+        if (!res.ok) throw new Error("获取令牌失败");
         const token = await res.text();
         const downloadUrl = new URL(originalHref);
         downloadUrl.searchParams.set("token", token);
@@ -586,7 +624,7 @@ function setupDownloadWithToken() {
         tempA.click();
         document.body.removeChild(tempA);
       } catch (err) {
-        alert(`下载失败：${err.message}`);
+        alert(`${I18N.downloadFailed}：${err.message}`);
       }
     });
   });
@@ -624,7 +662,7 @@ function setupNewFolder() {
   const $newFolder = document.querySelector(".new-folder");
   $newFolder.classList.remove("hidden");
   $newFolder.addEventListener("click", () => {
-    const name = prompt("请输入文件夹名称：");
+    const name = prompt(I18N.newFolderName);
     if (name) createFolder(name);
   });
 }
@@ -633,7 +671,7 @@ function setupNewFile() {
   const $newFile = document.querySelector(".new-file");
   $newFile.classList.remove("hidden");
   $newFile.addEventListener("click", () => {
-    const name = prompt("请输入文件名称：");
+    const name = prompt(I18N.newFileName);
     if (name) createFile(name);
   });
 }
@@ -683,7 +721,7 @@ async function setupEditorPage() {
       $notEditable.insertAdjacentHTML("afterend", `<iframe src="${url}" sandbox width="100%" height="${window.innerHeight - 100}px"></iframe>`);
     } else {
       $notEditable.classList.remove("hidden");
-      $notEditable.textContent = "无法编辑：文件过大或是二进制格式";
+      $notEditable.textContent = I18N.cannotEditBinaryOrLarge;
     }
     return;
   }
@@ -702,7 +740,7 @@ async function setupEditorPage() {
       $editor.value = decoder.decode(dataView);
     }
   } catch (err) {
-    alert(`无法获取文件：${err.message}`);
+    alert(`${I18N.cannotFetchFile}：${err.message}`);
   }
 }
 
@@ -726,7 +764,7 @@ async function deletePath(index) {
 }
 
 async function doDeletePath(name, url, cb) {
-  if (!confirm(`确定要删除 "${name}" 吗？此操作不可恢复。`)) return;
+  if (!confirm(`${I18N.confirmDelete} "${name}" ${I18N.cannotUndo}`)) return;
   try {
     await checkAuth();
     const res = await fetch(url, {
@@ -735,7 +773,7 @@ async function doDeletePath(name, url, cb) {
     await assertResOK(res);
     cb();
   } catch (err) {
-    alert(`删除失败：${err.message}`);
+    alert(`${I18N.deleteFailed}：${err.message}`);
   }
 }
 
@@ -761,7 +799,7 @@ async function doMovePath(fileUrl) {
 
   const filePath = decodeURIComponent(fileUrlObj.pathname.slice(prefix.length));
 
-  let newPath = prompt("请输入新的路径：", filePath);
+  let newPath = prompt(I18N.newPath, filePath);
   if (!newPath) return;
   if (!newPath.startsWith("/")) newPath = "/" + newPath;
   if (filePath === newPath) return;
@@ -773,7 +811,7 @@ async function doMovePath(fileUrl) {
       method: "HEAD",
     });
     if (res1.status === 200) {
-      if (!confirm("目标文件已存在，是否覆盖？")) {
+      if (!confirm(I18N.targetExists)) {
         return;
       }
     }
@@ -786,7 +824,7 @@ async function doMovePath(fileUrl) {
     await assertResOK(res2);
     return newFileUrl;
   } catch (err) {
-    alert(`移动失败：${err.message}`);
+    alert(`${I18N.moveFailed}：${err.message}`);
   }
 }
 
@@ -802,7 +840,7 @@ async function saveChange() {
     });
     location.reload();
   } catch (err) {
-    alert(`保存失败：${err.message}`);
+    alert(`${I18N.saveFailed}：${err.message}`);
   }
 }
 
@@ -843,7 +881,7 @@ async function createFolder(name) {
     await assertResOK(res);
     location.href = url;
   } catch (err) {
-    alert(`创建文件夹失败：${err.message}`);
+    alert(`${I18N.createFolderFailed}：${err.message}`);
   }
 }
 
@@ -858,7 +896,7 @@ async function createFile(name) {
     await assertResOK(res);
     location.href = url + "?edit";
   } catch (err) {
-    alert(`创建文件失败：${err.message}`);
+    alert(`${I18N.createFileFailed}：${err.message}`);
   }
 }
 
@@ -979,7 +1017,7 @@ function encodedStr(rawStr) {
 
 async function assertResOK(res) {
   if (!(res.status >= 200 && res.status < 300)) {
-    throw new Error(await res.text() || `Invalid status ${res.status}`);
+    throw new Error(await res.text() || `无效的状态 ${res.status}`);
   }
 }
 

@@ -156,7 +156,7 @@ impl AccessControl {
         let (pass, _) = self
             .users
             .get(user)
-            .ok_or_else(|| anyhow!("Not found user '{user}'"))?;
+            .ok_or_else(|| anyhow!("未找到用户 '{user}'"))?;
         let exp = unix_now().as_millis() as u64 + TOKEN_EXPIRATION;
         let message = format!("{path}:{exp}");
         let mut signing_key = derive_secret_key(user, pass);
@@ -183,7 +183,7 @@ impl AccessControl {
 
         let exp = u64::from_be_bytes(exp_bytes.try_into()?);
         if unix_now().as_millis() as u64 > exp {
-            bail!("Token expired");
+            bail!("令牌已过期");
         }
 
         let user = std::str::from_utf8(user_bytes)?;
@@ -496,7 +496,7 @@ fn derive_secret_key(user: &str, pass: &str) -> SigningKey {
 /// Return an error if it was never valid
 fn validate_nonce(nonce: &[u8]) -> Result<bool> {
     if nonce.len() != 34 {
-        bail!("invalid nonce");
+        bail!("无效的随机数");
     }
     //parse hex
     if let Ok(n) = std::str::from_utf8(nonce) {
@@ -517,7 +517,7 @@ fn validate_nonce(nonce: &[u8]) -> Result<bool> {
             }
         }
     }
-    bail!("invalid nonce");
+    bail!("无效的随机数");
 }
 
 fn is_readonly_method(method: &Method) -> bool {
