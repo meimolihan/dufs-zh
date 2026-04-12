@@ -756,10 +756,4 @@ hidden:
         assert_eq!(args.hidden, ["tmp", "*.log", "*.lock"]);
     }
 }
- }
-}
-
-
-
-}
 
