@@ -346,7 +346,7 @@ async function setupIndexPage() {
   if (DATA.allow_archive) {
     const $download = document.querySelector(".download");
     $download.href = baseUrl() + "?zip";
-    $download.title = "Download folder as a .zip file";
+    $download.title = "将文件夹下载为.zip文件";
     $download.classList.add("dlwt");
     $download.classList.remove("hidden");
   }
