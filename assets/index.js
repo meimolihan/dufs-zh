@@ -129,12 +129,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     download: '下载',
     moveRename: '移动/重命名',
     delete: '删除',
-    fileName: '文件名',
-    modifiedTime: '修改时间',
+    fileName: '名称',
+    modifiedTime: '最后修改时间',
     size: '大小',
     actions: '操作',
     dir: '目录',
-    downloadFolderZip: '下载文件夹为 ZIP',
+    downloadFolderZip: '打包根目录并下载',
     downloadAsZip: '下载为 ZIP',
     moveOrRename: '移动或重命名',
     newFolderName: '请输入文件夹名称：',
@@ -429,17 +429,17 @@ function renderPathsTableHead() {
     {
       name: "name",
       props: `colspan="2"`,
-      text: I18N.fileName,
+      text: "名称",
     },
     {
       name: "mtime",
       props: ``,
-      text: I18N.modifiedTime,
+      text: "最后修改时间",
     },
     {
       name: "size",
       props: ``,
-      text: I18N.size,
+      text: "大小",
     }
   ];
   $pathsTableHead.insertAdjacentHTML("beforeend", `
@@ -1045,3 +1045,4 @@ function decodeBase64(base64String) {
   }
   return new TextDecoder().decode(bytes);
 }
+

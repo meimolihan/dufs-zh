@@ -132,52 +132,6 @@ body.dark .head {
   background: rgba(19, 19, 31, 0.9);
 }
 
-/* Brand mark */
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-
-.brand-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--accent) 0%, #a29bfe 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px var(--accent-glow);
-  flex-shrink: 0;
-}
-
-.brand-icon svg {
-  width: 14px;
-  height: 14px;
-  fill: #fff;
-}
-
-.brand-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-
-.brand-name span {
-  color: var(--accent);
-}
-
-/* Divider */
-.head-divider {
-  width: 1px;
-  height: 24px;
-  background: var(--border-strong);
-  flex-shrink: 0;
-}
-
 /* Breadcrumb */
 .breadcrumb {
   display: flex;
@@ -875,10 +829,6 @@ body.dark .head {
   .head {
     padding: 0 12px;
     gap: 8px;
-  }
-
-  .brand-name {
-    display: none;
   }
 
   .searchbar {
