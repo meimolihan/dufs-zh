@@ -83,7 +83,7 @@ docker run -d \
   --name dufs \
   -v /your/data/path:/data \
   -p 5000:5000 \
-  --restart unless-stopped \
+  --restart always \
   mobufan/dufs-zh:latest /data
 
 # 开启全部操作权限（上传/删除/新建/编辑）
@@ -91,7 +91,7 @@ docker run -d \
   --name dufs \
   -v /your/data/path:/data \
   -p 5000:5000 \
-  --restart unless-stopped \
+  --restart always \
   mobufan/dufs-zh:latest /data -A
 ```
 
@@ -100,17 +100,15 @@ docker run -d \
 创建 `docker-compose.yml`：
 
 ```yaml
-version: '3.8'
-
 services:
   dufs:
     image: mobufan/dufs-zh:latest
     container_name: dufs
-    restart: unless-stopped
+    restart: always
     ports:
-      - "5000:5000"
+      - 5000:5000
     volumes:
-      - /your/data/path:/data
+      - /mnt:/data
     command: /data -A  # 添加 -A 开启全部权限
 ```
 
@@ -129,7 +127,7 @@ docker run -d \
   --name dufs \
   -v /mnt/shared:/mnt/shared \
   -p 5000:5000 \
-  --restart unless-stopped \
+  --restart always \
   mobufan/dufs-zh:latest /mnt/shared/media -A
 ```
 
@@ -140,7 +138,7 @@ docker run -d \
   --name dufs \
   -v $(pwd):/data \
   -p 5000:5000 \
-  --restart unless-stopped \
+  --restart always \
   mobufan/dufs-zh:latest /data \
   -a admin:你的密码@/:rw
 ```
@@ -153,7 +151,7 @@ docker run -d \
   -v $(pwd):/data \
   -v /path/to/certs:/certs \
   -p 443:443 \
-  --restart unless-stopped \
+  --restart always \
   mobufan/dufs-zh:latest /data \
   --tls-cert /certs/server.crt --tls-key /certs/server.key
 ```
@@ -165,7 +163,7 @@ docker run -d \
   --name dufs \
   -v $(pwd):/data \
   -p 192.168.1.100:8080:8080 \
-  --restart unless-stopped \
+  --restart always \
   mobufan/dufs-zh:latest /data -p 8080
 ```
 
