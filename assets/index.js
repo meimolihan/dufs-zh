@@ -346,7 +346,7 @@ async function setupIndexPage() {
   if (DATA.allow_archive) {
     const $download = document.querySelector(".download");
     $download.href = baseUrl() + "?zip";
-    $download.title = "打包根目录并下载";
+    $download.title = "Download folder as a .zip file";
     $download.classList.add("dlwt");
     $download.classList.remove("hidden");
   }
@@ -412,7 +412,7 @@ function renderPathsTableHead() {
     const icon = `<span>${svg}</span>`
     return `<th class="cell-${item.name}" ${item.props}><a href="?${qs}">${item.text}${icon}</a></th>`
   }).join("\n")}
-      <th class="cell-actions">Actions</th>
+      <th class="cell-actions">操作</th>
     </tr>
   `);
 }
@@ -454,7 +454,7 @@ function addPath(file, index) {
     if (DATA.allow_archive) {
       actionDownload = `
       <div class="action-btn">
-        <a class="dlwt" href="${url}?zip" title="打包下载文件夹" download>${ICONS.download}</a>
+        <a class="dlwt" href="${url}?zip" title="打包根目录并下载" download>${ICONS.download}</a>
       </div>`;
     }
   } else {
@@ -562,7 +562,7 @@ function setupDownloadWithToken() {
         tempA.click();
         document.body.removeChild(tempA);
       } catch (err) {
-        alert(`Failed to download, ${err.message}`);
+        alert(`下载失败，${err.message}`);
       }
     });
   });
@@ -678,7 +678,7 @@ async function setupEditorPage() {
       $editor.value = decoder.decode(dataView);
     }
   } catch (err) {
-    alert(`Failed to get file, ${err.message}`);
+    alert(`获取文件失败，${err.message}`);
   }
 }
 
@@ -702,7 +702,7 @@ async function deletePath(index) {
 }
 
 async function doDeletePath(name, url, cb) {
-  if (!confirm(`确定要删除 \`${name}\` 吗？`)) return;
+  if (!confirm(`Delete \`${name}\`?`)) return;
   try {
     await checkAuth();
     const res = await fetch(url, {
@@ -711,7 +711,7 @@ async function doDeletePath(name, url, cb) {
     await assertResOK(res);
     cb();
   } catch (err) {
-    alert(`无法删除 \`${file.name}\`，${err.message}`);
+    alert(`Cannot delete \`${file.name}\`, ${err.message}`);
   }
 }
 
@@ -762,7 +762,7 @@ async function doMovePath(fileUrl) {
     await assertResOK(res2);
     return newFileUrl;
   } catch (err) {
-    alert(`无法将 \`${filePath}\` 移动到 \`${newPath}\`，${err.message}`);
+    alert(`Cannot move \`${filePath}\` to \`${newPath}\`, ${err.message}`);
   }
 }
 
@@ -834,7 +834,7 @@ async function createFile(name) {
     await assertResOK(res);
     location.href = url + "?edit";
   } catch (err) {
-    alert(`无法创建文件 \`${name}\`，${err.message}`);
+    alert(`Cannot create file \`${name}\`, ${err.message}`);
   }
 }
 
@@ -988,14 +988,3 @@ function decodeBase64(base64String) {
   }
   return new TextDecoder().decode(bytes);
 }
-}
-
-}
-
-
-
-}
-
-
-}
-
