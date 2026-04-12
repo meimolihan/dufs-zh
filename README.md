@@ -7,7 +7,7 @@
 
 Dufs 是一款**独具特色的实用文件服务器**，支持静态文件服务、上传、搜索、权限控制、WebDAV，并内置**中文界面**。
 
-![界面预览](https://user-images.githubusercontent.com/4012553/220513063-ff0f186b-ac54-4682-9af4-47a9781dee0d.png)
+![界面预览](./assets/dufs-ui.webp)
 
 ## 功能特性
 
