@@ -225,22 +225,20 @@ docker buildx inspect mybuilder --bootstrap
 # 先登录 Docker Hub
 docker login -u mobufan
 
-# 构建 amd64 + arm64 双架构镜像
+# 构建 amd64 + arm64 双架构镜像，并推送到 Docker Hub
 docker buildx build \
  --platform linux/amd64,linux/arm64 \
  -t mobufan/dufs-zh:latest \
- --load \
+ --push \
  .
-
-# amd64 + arm64 双架构镜像，推送到 Docker Hub
-docker push mobufan/dufs-zh
 ```
 
-| 参数 | 说明 |
-|------|------|
+| 参数         | 说明                                                         |
+| ------------ | ------------------------------------------------------------ |
 | `--platform` | 指定目标架构，支持 `linux/amd64`、`linux/arm64`、`linux/arm/v7` |
-| `--push` | 构建完成后自动推送到镜像仓库 |
-| `-t` | 镜像标签，可同时指定多个（:latest + 版本号） |
+| `--push`     | 构建完成后自动推送到镜像仓库                                 |
+| `--load`     | 将镜像加载到本地 Docker（仅构建不推送时使用）                |
+| `-t`         | 镜像标签，可同时指定多个（:latest + 版本号）                 |
 
 > 💡 如果只想本地构建不推送，去掉 `--push`，改为加 `-o type=docker`：
 > ```bash
