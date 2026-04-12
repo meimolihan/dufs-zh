@@ -142,8 +142,8 @@ body.dark .head {
 }
 
 .brand-icon {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--accent) 0%, #a29bfe 100%);
   display: flex;
@@ -154,8 +154,8 @@ body.dark .head {
 }
 
 .brand-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   fill: #fff;
 }
 
@@ -437,31 +437,6 @@ body.dark .head {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-}
-
-/* Stats bar */
-.stats-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.stats-bar .stat {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-}
-
-.stats-bar .stat strong {
-  color: var(--text-secondary);
-  font-weight: 600;
 }
 
 /* ── File Table ── */

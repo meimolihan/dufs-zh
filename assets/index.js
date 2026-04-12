@@ -376,7 +376,7 @@ function addBreadcrumb(href, uri_prefix) {
     }
     const encodedName = encodedStr(name);
     if (i === 0) {
-      $breadcrumb.insertAdjacentHTML("beforeend", `<a href="${path}" title="根目录">${ICONS.home}</a>`);
+      $breadcrumb.insertAdjacentHTML("beforeend", `<a href="/" title="返回根目录">${ICONS.home}</a>`);
     } else if (i === len - 1) {
       $breadcrumb.insertAdjacentHTML("beforeend", `<b>${encodedName}</b>`);
     } else {
@@ -473,15 +473,10 @@ function renderPathsTableBody() {
     if (len > 0) {
       $pathsTable.classList.remove("hidden");
     }
-    // Update item count in stats bar
-    const countEl = document.getElementById('itemCount');
-    if (countEl) countEl.textContent = len;
     for (let i = 0; i < len; i++) {
       addPath(DATA.paths[i], i);
     }
   } else {
-    const countEl = document.getElementById('itemCount');
-    if (countEl) countEl.textContent = '0';
     $emptyFolder.classList.remove("hidden");
   }
 }
