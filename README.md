@@ -383,7 +383,7 @@ docker buildx build \
 ```sh
 docker build \
   --build-arg REPO=sigoden/dufs \
-  --build-arg VER=0.45.0 \
+  --build-arg VER=1.0.0 \
   -t mobufan/dufs-zh:latest \
   -f Dockerfile-release \
   .

@@ -63,11 +63,38 @@ function applyTheme(theme) {
 
 function toggleTheme() {
   const current = getPreferredTheme();
-  // Cycle: system -> dark -> light -> system
-  // But for button click: if currently dark (manual or system+dark OS) -> light, else -> dark
   const isDark = document.documentElement.classList.contains("dark") ||
     (current === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  applyTheme(isDark ? "light" : "dark");
+  const newTheme = isDark ? "light" : "dark";
+
+  if (typeof document.startViewTransition === "function") {
+    const transition = document.startViewTransition(() => {
+      applyTheme(newTheme);
+    });
+    transition.ready.then(() => {
+      const centerX = 0;
+      const centerY = window.innerHeight;
+      const radius = Math.hypot(
+        Math.max(centerX, window.innerWidth - centerX),
+        Math.max(centerY, window.innerHeight - centerY)
+      );
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0% at ${centerX}px ${centerY}px)`,
+            `circle(${radius}px at ${centerX}px ${centerY}px)`,
+          ],
+        },
+        {
+          duration: 500,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+  } else {
+    applyTheme(newTheme);
+  }
 }
 
 // Apply immediately to avoid flash

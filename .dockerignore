@@ -11,6 +11,9 @@
 
 # Files
 .gitignore
+.dockerignore
+Dockerfile*
+docker-compose*
 *.md
 LICENSE*
 *.original
