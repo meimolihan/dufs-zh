@@ -1,13 +1,16 @@
 # Directories
 /.git/
 /.github/
+/.mimocode/
 /target/
 /examples/
 /docs/
 /benches/
 /tmp/
+/tests/
 
 # Files
 .gitignore
 *.md
 LICENSE*
+*.original

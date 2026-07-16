@@ -9,9 +9,43 @@
   </noscript>
   <link rel="icon" type="image/x-icon" href="__ASSETS_PREFIX__favicon.ico">
   <link rel="stylesheet" href="__ASSETS_PREFIX__index.css">
+  <script>
+    // Synchronous: decide splash BEFORE first paint
+    // Skip splash on view pages; otherwise show on first load and refresh, skip on link clicks / history navigation
+    (function() {
+      var KEY = "dufs-splash";
+      var isView = /[?&]view(&|$)/.test(location.search);
+
+      if (isView) {
+        document.documentElement.setAttribute("data-splash-hidden", "");
+      } else {
+        var navType = performance.getEntriesByType("navigation")[0]?.type || "";
+        var isReload = navType === "reload";
+        var isFirstVisit = !sessionStorage.getItem(KEY);
+
+        if (isFirstVisit || isReload) {
+          sessionStorage.setItem(KEY, "1");
+        } else {
+          document.documentElement.setAttribute("data-splash-hidden", "");
+        }
+      }
+    })();
+  </script>
+  <style>html[data-splash-hidden] .splash{display:none!important}</style>
 </head>
 
 <body>
+  <!-- Splash screen -->
+  <div class="splash" id="splash">
+    <div class="splash-icon">
+      <svg width="60" height="60" viewBox="0 0 16 16" fill="none">
+        <path fill-rule="evenodd" d="M13 4H7V3c0-.66-.31-1-1-1H1c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1zM6 4H1V3h5v1z" fill="currentColor"/>
+        <path d="M14.5 8h-1.005l.256-2.819A2 2 0 0 0 11.81 3H9.828a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 6.172 1H2.5a2 2 0 0 0-2 2v.04l.04.87a1.99 1.99 0 0 0-.342 1.311l.637 7A2 2 0 0 0 2.826 14H9v-1H2.826a1 1 0 0 1-.995-.91l-.637-7A1 1 0 0 1 2.19 4h11.62a1 1 0 0 1 .996 1.09L14.54 8z" fill="currentColor" opacity="0.3"/>
+      </svg>
+    </div>
+    <div class="splash-text">Dufs</div>
+  </div>
+
   <div class="head">
     <div class="breadcrumb"></div>
     <div class="toolbox">
@@ -23,7 +57,7 @@
             d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
         </svg>
       </a>
-      <div class="control move-file hidden" title="Move & Rename">
+      <div class="control move-file hidden" title="移动并重命名">
         <svg class="icon-move" width="16" height="16" viewBox="0 0 16 16">
           <path fill-rule="evenodd"
             d="M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5z">
@@ -78,6 +112,22 @@
       <input type="submit" hidden />
     </form>
     <div class="toolbox-right">
+      <div class="theme-toggle" title="切换明暗模式" onclick="toggleTheme()">
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </div>
       <div class="login-btn hidden" title="登录">
         <svg width="16" height="16" viewBox="0 0 16 16">
           <path fill-rule="evenodd"

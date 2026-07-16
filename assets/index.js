@@ -43,6 +43,36 @@ var DIR_EMPTY_NOTE;
  */
 const PARAMS = Object.fromEntries(new URLSearchParams(window.location.search).entries());
 
+// Theme toggle
+// localStorage values: "dark" | "light" | "system" (or absent)
+function getPreferredTheme() {
+  return localStorage.getItem("dufs-theme") || "system";
+}
+
+function applyTheme(theme) {
+  const el = document.documentElement;
+  el.classList.remove("dark", "light");
+  if (theme === "dark") {
+    el.classList.add("dark");
+  } else if (theme === "light") {
+    el.classList.add("light");
+  }
+  // "system" = no class; CSS media query handles it
+  localStorage.setItem("dufs-theme", theme);
+}
+
+function toggleTheme() {
+  const current = getPreferredTheme();
+  // Cycle: system -> dark -> light -> system
+  // But for button click: if currently dark (manual or system+dark OS) -> light, else -> dark
+  const isDark = document.documentElement.classList.contains("dark") ||
+    (current === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  applyTheme(isDark ? "light" : "dark");
+}
+
+// Apply immediately to avoid flash
+applyTheme(getPreferredTheme());
+
 const IFRAME_FORMATS = [
   ".pdf",
   ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg",
@@ -61,7 +91,7 @@ const ICONS = {
   move: `<svg width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5z"/></svg>`,
   edit: `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>`,
   delete: `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M6.854 7.146a.5.5 0 1 0-.708.708L7.293 9l-1.147 1.146a.5.5 0 0 0 .708.708L8 9.707l1.146 1.147a.5.5 0 0 0 .708-.708L8.707 9l1.147-1.146a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146z"/><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/></svg>`,
-  view: `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1"/></svg>`,
+  view: `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`,
 }
 
 /**
@@ -121,6 +151,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function ready() {
+  // Show splash only if NOT hidden by the <head> sync script
+  const splashSkipped = document.documentElement.hasAttribute("data-splash-hidden");
+  if (!splashSkipped) {
+    document.body.classList.add("splash-active");
+  }
+
   $pathsTable = document.querySelector(".paths-table");
   $pathsTableHead = document.querySelector(".paths-table thead");
   $pathsTableBody = document.querySelector(".paths-table tbody");
@@ -149,6 +185,36 @@ async function ready() {
 
     await setupEditorPage();
   }
+
+  // Dismiss splash screen after content is ready
+  if (!splashSkipped) {
+    dismissSplash();
+  }
+}
+
+function dismissSplash() {
+  const splash = document.getElementById("splash");
+  if (!splash) return;
+
+  const icon = splash.querySelector(".splash-icon");
+  const text = splash.querySelector(".splash-text");
+
+  // After 800ms of breathing, start exit
+  setTimeout(() => {
+    icon.classList.add("hide");
+    text.classList.add("hide");
+
+    // After icon flies away, fade splash and reveal content
+    setTimeout(() => {
+      splash.classList.add("hide");
+      document.body.classList.remove("splash-active");
+      document.querySelector(".head").classList.add("reveal");
+      document.querySelector(".main").classList.add("reveal");
+
+      // Remove splash DOM after transition
+      setTimeout(() => splash.remove(), 500);
+    }, 400);
+  }, 800);
 }
 
 class Uploader {
@@ -551,7 +617,7 @@ function setupDownloadWithToken() {
         const tokengenUrl = new URL(originalHref);
         tokengenUrl.searchParams.set("tokengen", "");
         const res = await fetch(tokengenUrl);
-        if (!res.ok) throw new Error("Failed to fetch token");
+        if (!res.ok) throw new Error("获取令牌失败");
         const token = await res.text();
         const downloadUrl = new URL(originalHref);
         downloadUrl.searchParams.set("token", token);
@@ -649,6 +715,17 @@ async function setupEditorPage() {
     }
   } else if (DATA.kind == "View") {
     $editor.readonly = true;
+    document.body.classList.add("view-mode");
+    document.querySelector(".breadcrumb").addEventListener("click", () => {
+      sessionStorage.setItem("dufs-splash", "1");
+    });
+    document.addEventListener("click", (e) => {
+      const target = e.target;
+      // Don't close when clicking interactive elements or content areas
+      if (target.closest("a, button, input, select, textarea, .head, .editor, .not-editable, iframe")) return;
+      sessionStorage.setItem("dufs-splash", "1");
+      history.back();
+    });
   }
 
   if (!DATA.editable) {
@@ -702,7 +779,7 @@ async function deletePath(index) {
 }
 
 async function doDeletePath(name, url, cb) {
-  if (!confirm(`Delete \`${name}\`?`)) return;
+  if (!confirm(`确认删除 \`${name}\`？`)) return;
   try {
     await checkAuth();
     const res = await fetch(url, {
@@ -711,7 +788,7 @@ async function doDeletePath(name, url, cb) {
     await assertResOK(res);
     cb();
   } catch (err) {
-    alert(`Cannot delete \`${file.name}\`, ${err.message}`);
+    alert(`无法删除 \`${name}\`，${err.message}`);
   }
 }
 
@@ -762,7 +839,7 @@ async function doMovePath(fileUrl) {
     await assertResOK(res2);
     return newFileUrl;
   } catch (err) {
-    alert(`Cannot move \`${filePath}\` to \`${newPath}\`, ${err.message}`);
+    alert(`无法移动 \`${filePath}\` 到 \`${newPath}\`，${err.message}`);
   }
 }
 
@@ -819,7 +896,7 @@ async function createFolder(name) {
     await assertResOK(res);
     location.href = url;
   } catch (err) {
-    alert(`Cannot create folder \`${name}\`, ${err.message}`);
+    alert(`无法创建文件夹 \`${name}\`，${err.message}`);
   }
 }
 
@@ -834,7 +911,7 @@ async function createFile(name) {
     await assertResOK(res);
     location.href = url + "?edit";
   } catch (err) {
-    alert(`Cannot create file \`${name}\`, ${err.message}`);
+    alert(`无法创建文件 \`${name}\`，${err.message}`);
   }
 }
 
@@ -955,7 +1032,7 @@ function encodedStr(rawStr) {
 
 async function assertResOK(res) {
   if (!(res.status >= 200 && res.status < 300)) {
-    throw new Error(await res.text() || `Invalid status ${res.status}`);
+    throw new Error(await res.text() || `无效状态 ${res.status}`);
   }
 }
 
