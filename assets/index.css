@@ -392,6 +392,7 @@ html.dark .theme-toggle .icon-moon { display: none; }
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: fixed;
 }
 
 .uploaders-table th,
@@ -423,6 +424,11 @@ html.dark .theme-toggle .icon-moon { display: none; }
   width: 32px;
   padding-right: 0;
   padding-left: 12px;
+}
+
+.cell-name {
+  overflow: hidden;
+  padding-left: 1px;
 }
 
 .cell-status span {
@@ -533,8 +539,7 @@ html.dark .theme-toggle .icon-moon { display: none; }
   overflow: hidden;
   display: block;
   text-decoration: none;
-  max-width: calc(100vw - 420px);
-  min-width: 100px;
+  width: 100%;
   padding: 3px 8px;
   border-radius: var(--radius-sm);
   transition: color var(--transition), background-color var(--transition);
@@ -791,11 +796,6 @@ body.splash-active .main.reveal {
     width: auto;
   }
 
-  .path a {
-    max-width: calc(100vw - 180px);
-    min-width: 60px;
-  }
-
   .editor {
     height: calc(100vh - 10rem);
     padding: 12px;
@@ -883,11 +883,6 @@ body.splash-active .main.reveal {
     padding: 6px 6px;
   }
 
-  .path a {
-    max-width: calc(100vw - 140px);
-    min-width: 40px;
-  }
-
   .empty-folder {
     padding: 40px 12px;
   }
@@ -921,14 +916,35 @@ body.splash-active .main.reveal {
     border-radius: var(--radius-sm);
   }
 
-  .path a {
-    min-width: 300px;
-    max-width: 500px;
-  }
-
   .action-btn {
     padding: 5px 8px;
   }
+}
+
+/* ============================================================
+   FOCUS VISIBLE (keyboard accessibility)
+   ============================================================ */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.theme-toggle:focus-visible,
+.toolbox .control:focus-visible,
+.upload-file label:focus-visible,
+.login-btn:focus-visible,
+.save-btn:focus-visible,
+.logout-btn:focus-visible,
+.retry-btn:focus-visible,
+.action-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+}
+
+html.dark *:focus-visible {
+  outline-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.18);
 }
 
 /* ============================================================
@@ -938,6 +954,8 @@ html.dark {
   --bg: #0b0e14;
   --bg-surface: #151921;
   --bg-card: #1a1f2e;
+  --bg-elevated: #222838;
+  --bg-inset: #111520;
   --text-primary: #e2e8f0;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
@@ -953,63 +971,82 @@ html.dark {
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-html.dark body { background-color: var(--bg); }
-html.dark .head { background: linear-gradient(180deg, var(--bg-card) 0%, color-mix(in srgb, var(--bg-card) 92%, var(--bg)) 100%); backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom-color: var(--border-strong); box-shadow: 0 1px 0 var(--border-strong), var(--shadow-md); }
-html.dark .breadcrumb > a { color: var(--accent); }
-html.dark .breadcrumb > a:hover { background-color: var(--accent-muted); }
-html.dark .breadcrumb > b { color: var(--text-primary); }
-html.dark .breadcrumb svg { fill: var(--accent); }
+html.dark .head {
+  background: linear-gradient(180deg, var(--bg-card) 0%, color-mix(in srgb, var(--bg-card) 92%, var(--bg)) 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: var(--border-strong);
+  box-shadow: 0 1px 0 var(--border-strong), var(--shadow-md);
+}
 
-html.dark .searchbar { background-color: var(--bg); border-color: var(--border); }
-html.dark .searchbar:focus-within { border-color: var(--accent); background-color: var(--bg-card); }
-html.dark .searchbar .icon svg { fill: var(--text-muted); }
-html.dark .searchbar:focus-within .icon svg { fill: var(--accent); }
+html.dark .breadcrumb > a:hover {
+  background-color: var(--accent-muted);
+}
 
-html.dark .paths-table thead a { color: var(--text-muted); }
-html.dark .paths-table thead a:hover { color: var(--text-primary); }
-html.dark .paths-table tbody tr { border-bottom-color: rgba(255,255,255,0.04); }
-html.dark .paths-table tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.015); }
-html.dark .paths-table tbody tr:hover { background-color: var(--accent-muted); box-shadow: inset 3px 0 0 var(--accent); }
-html.dark .path a { color: var(--accent); }
-html.dark .path a:hover { color: var(--accent-hover); background-color: var(--accent-muted); }
-html.dark .path svg { fill: var(--accent); }
+html.dark .searchbar {
+  background-color: var(--bg);
+  border-color: var(--border);
+}
 
-html.dark .action-btn { color: var(--text-muted); }
-html.dark .action-btn:hover { background-color: var(--accent-muted); color: var(--accent); }
-html.dark .action-btn svg { fill: currentColor; }
+html.dark .paths-table thead a {
+  color: var(--text-muted);
+}
 
-html.dark .editor { background-color: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
-html.dark .editor:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), var(--shadow-sm); }
+html.dark .paths-table thead a:hover {
+  color: var(--text-primary);
+}
 
-html.dark .login-btn { color: var(--text-secondary); }
-html.dark .login-btn:hover { background-color: var(--accent-muted); color: var(--accent); }
-html.dark .save-btn { color: var(--text-secondary); }
-html.dark .save-btn:hover { background-color: var(--accent-muted); color: var(--accent); }
-html.dark .save-btn svg { fill: var(--text-secondary); }
-html.dark .save-btn:hover svg { fill: var(--accent); }
+html.dark .paths-table tbody tr {
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
 
-html.dark .logout-btn { color: var(--text-secondary); }
-html.dark .logout-btn:hover { background-color: rgba(220, 38, 38, 0.12); color: #f87171; }
-html.dark .logout-btn svg { fill: currentColor; }
-html.dark .logout-btn:hover svg { fill: #f87171; }
+html.dark .paths-table tbody tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.015);
+}
 
-html.dark .retry-btn { color: #f87171; }
-html.dark .retry-btn:hover { background-color: rgba(220, 38, 38, 0.12); color: #fca5a5; }
+html.dark .editor:focus {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), var(--shadow-sm);
+}
 
-html.dark .toolbox .control:hover { border-color: rgba(96, 165, 250, 0.15); }
-html.dark .theme-toggle:hover { border-color: rgba(96, 165, 250, 0.3); }
-html.dark .login-btn:hover, html.dark .save-btn:hover { border-color: rgba(96, 165, 250, 0.15); }
+html.dark .login-btn:hover,
+html.dark .save-btn:hover {
+  background-color: var(--accent-muted);
+  border-color: rgba(96, 165, 250, 0.15);
+}
 
-html.dark .splash { background-color: var(--bg); }
-html.dark .splash-icon { color: var(--accent); }
-html.dark .splash-text { color: var(--text-primary); }
-html.dark .empty-folder { color: var(--text-muted); }
-html.dark .not-editable { color: var(--text-muted); }
+html.dark .logout-btn:hover {
+  background-color: rgba(220, 38, 38, 0.12);
+  color: #f87171;
+}
 
-html.dark .toolbox .control svg { fill: var(--text-secondary); }
-html.dark .toolbox .control:hover svg { fill: var(--accent); }
-html.dark .upload-file label svg { fill: var(--text-secondary); }
-html.dark .upload-file label:hover svg { fill: var(--accent); }
+html.dark .logout-btn:hover svg {
+  fill: #f87171;
+}
+
+html.dark .retry-btn {
+  color: #f87171;
+}
+
+html.dark .retry-btn:hover {
+  background-color: rgba(220, 38, 38, 0.12);
+  color: #fca5a5;
+}
+
+html.dark .toolbox .control:hover {
+  border-color: rgba(96, 165, 250, 0.15);
+}
+
+html.dark .theme-toggle:hover {
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+html.dark .toolbox .control svg {
+  fill: var(--text-secondary);
+}
+
+html.dark .upload-file label svg {
+  fill: var(--text-secondary);
+}
 
 /* ============================================================
    DARK THEME (system preference, respects user override)
@@ -1019,6 +1056,8 @@ html.dark .upload-file label:hover svg { fill: var(--accent); }
     --bg: #0b0e14;
     --bg-surface: #151921;
     --bg-card: #1a1f2e;
+    --bg-elevated: #222838;
+    --bg-inset: #111520;
     --text-primary: #e2e8f0;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
@@ -1034,61 +1073,85 @@ html.dark .upload-file label:hover svg { fill: var(--accent); }
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
   }
 
-  html:not(.light) body { background-color: var(--bg); }
-  html:not(.light) .head { background: linear-gradient(180deg, var(--bg-card) 0%, color-mix(in srgb, var(--bg-card) 92%, var(--bg)) 100%); backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom-color: var(--border-strong); box-shadow: 0 1px 0 var(--border-strong), var(--shadow-md); }
-  html:not(.light) .breadcrumb > a { color: var(--accent); }
-  html:not(.light) .breadcrumb > a:hover { background-color: var(--accent-muted); }
-  html:not(.light) .breadcrumb > b { color: var(--text-primary); }
-  html:not(.light) .breadcrumb svg { fill: var(--accent); }
+  html:not(.light) .head {
+    background: linear-gradient(180deg, var(--bg-card) 0%, color-mix(in srgb, var(--bg-card) 92%, var(--bg)) 100%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom-color: var(--border-strong);
+    box-shadow: 0 1px 0 var(--border-strong), var(--shadow-md);
+  }
 
-  html:not(.light) .searchbar { background-color: var(--bg); border-color: var(--border); }
-  html:not(.light) .searchbar:focus-within { border-color: var(--accent); background-color: var(--bg-card); }
-  html:not(.light) .searchbar .icon svg { fill: var(--text-muted); }
-  html:not(.light) .searchbar:focus-within .icon svg { fill: var(--accent); }
+  html:not(.light) .breadcrumb > a:hover {
+    background-color: var(--accent-muted);
+  }
 
-  html:not(.light) .paths-table thead a { color: var(--text-muted); }
-  html:not(.light) .paths-table thead a:hover { color: var(--text-primary); }
-  html:not(.light) .paths-table tbody tr { border-bottom-color: rgba(255,255,255,0.04); }
-  html:not(.light) .paths-table tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.015); }
-  html:not(.light) .paths-table tbody tr:hover { background-color: var(--accent-muted); box-shadow: inset 3px 0 0 var(--accent); }
-  html:not(.light) .path a { color: var(--accent); }
-  html:not(.light) .path a:hover { color: var(--accent-hover); background-color: var(--accent-muted); }
-  html:not(.light) .path svg { fill: var(--accent); }
+  html:not(.light) .searchbar {
+    background-color: var(--bg);
+    border-color: var(--border);
+  }
 
-  html:not(.light) .action-btn { color: var(--text-muted); }
-  html:not(.light) .action-btn:hover { background-color: var(--accent-muted); color: var(--accent); }
-  html:not(.light) .action-btn svg { fill: currentColor; }
+  html:not(.light) .paths-table thead a {
+    color: var(--text-muted);
+  }
 
-  html:not(.light) .editor { background-color: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
-  html:not(.light) .editor:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), var(--shadow-sm); }
+  html:not(.light) .paths-table thead a:hover {
+    color: var(--text-primary);
+  }
 
-  html:not(.light) .login-btn { color: var(--text-secondary); }
-  html:not(.light) .login-btn:hover { background-color: var(--accent-muted); color: var(--accent); }
-  html:not(.light) .save-btn { color: var(--text-secondary); }
-  html:not(.light) .save-btn:hover { background-color: var(--accent-muted); color: var(--accent); }
-  html:not(.light) .save-btn svg { fill: var(--text-secondary); }
-  html:not(.light) .save-btn:hover svg { fill: var(--accent); }
+  html:not(.light) .paths-table tbody tr {
+    border-bottom-color: rgba(255, 255, 255, 0.04);
+  }
 
-  html:not(.light) .logout-btn { color: var(--text-secondary); }
-  html:not(.light) .logout-btn:hover { background-color: rgba(220, 38, 38, 0.12); color: #f87171; }
-  html:not(.light) .logout-btn svg { fill: currentColor; }
-  html:not(.light) .logout-btn:hover svg { fill: #f87171; }
+  html:not(.light) .paths-table tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.015);
+  }
 
-  html:not(.light) .retry-btn { color: #f87171; }
-  html:not(.light) .retry-btn:hover { background-color: rgba(220, 38, 38, 0.12); color: #fca5a5; }
+  html:not(.light) .editor:focus {
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), var(--shadow-sm);
+  }
 
-  html:not(.light) .toolbox .control:hover { border-color: rgba(96, 165, 250, 0.15); }
-  html:not(.light) .theme-toggle:hover { border-color: rgba(96, 165, 250, 0.15); }
-  html:not(.light) .login-btn:hover, html:not(.light) .save-btn:hover { border-color: rgba(96, 165, 250, 0.15); }
+  html:not(.light) .login-btn:hover,
+  html:not(.light) .save-btn:hover {
+    background-color: var(--accent-muted);
+    border-color: rgba(96, 165, 250, 0.15);
+  }
 
-  html:not(.light) .splash { background-color: var(--bg); }
-  html:not(.light) .splash-icon { color: var(--accent); }
-  html:not(.light) .splash-text { color: var(--text-primary); }
-  html:not(.light) .empty-folder { color: var(--text-muted); }
-  html:not(.light) .not-editable { color: var(--text-muted); }
+  html:not(.light) .logout-btn:hover {
+    background-color: rgba(220, 38, 38, 0.12);
+    color: #f87171;
+  }
 
-  html:not(.light) .toolbox .control svg { fill: var(--text-secondary); }
-  html:not(.light) .toolbox .control:hover svg { fill: var(--accent); }
-  html:not(.light) .upload-file label svg { fill: var(--text-secondary); }
-  html:not(.light) .upload-file label:hover svg { fill: var(--accent); }
+  html:not(.light) .logout-btn:hover svg {
+    fill: #f87171;
+  }
+
+  html:not(.light) .retry-btn {
+    color: #f87171;
+  }
+
+  html:not(.light) .retry-btn:hover {
+    background-color: rgba(220, 38, 38, 0.12);
+    color: #fca5a5;
+  }
+
+  html:not(.light) .toolbox .control:hover {
+    border-color: rgba(96, 165, 250, 0.15);
+  }
+
+  html:not(.light) .theme-toggle:hover {
+    border-color: rgba(96, 165, 250, 0.15);
+  }
+
+  html:not(.light) .toolbox .control svg {
+    fill: var(--text-secondary);
+  }
+
+  html:not(.light) .upload-file label svg {
+    fill: var(--text-secondary);
+  }
+
+  html:not(.light) *:focus-visible {
+    outline-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.18);
+  }
 }
