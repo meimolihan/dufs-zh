@@ -732,7 +732,18 @@ body.splash-active .main.reveal {
    RESPONSIVE — TABLET (≤ 768px)
    ============================================================ */
 @media (max-width: 768px) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+
   .head {
+    flex-shrink: 0;
     padding: 8px 12px;
     gap: 6px;
   }
@@ -760,6 +771,10 @@ body.splash-active .main.reveal {
   }
 
   .main {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     padding: 12px;
   }
 
@@ -792,8 +807,26 @@ body.splash-active .main.reveal {
    RESPONSIVE — MOBILE (≤ 480px)
    ============================================================ */
 @media (max-width: 480px) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     -webkit-text-size-adjust: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .head {
+    flex-shrink: 0;
+  }
+
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .theme-toggle {
