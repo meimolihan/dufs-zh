@@ -10,6 +10,17 @@
   <link rel="icon" type="image/x-icon" href="__ASSETS_PREFIX__favicon.ico">
   <link rel="stylesheet" href="__ASSETS_PREFIX__index.css">
   <script>
+    // 同步执行：在首次绘制前应用主题，防止闪烁
+    (function() {
+      var theme = localStorage.getItem("dufs-theme") || "system";
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else if (theme === "light") {
+        document.documentElement.classList.add("light");
+      }
+    })();
+  </script>
+  <script>
     // Synchronous: decide splash BEFORE first paint
     // Skip splash on view pages; otherwise show on first load and refresh, skip on link clicks / history navigation
     (function() {
@@ -142,7 +153,7 @@
       <table class="uploaders-table hidden">
         <thead>
           <tr>
-            <th class="cell-name" colspan="2">名称</th>
+            <th class="cell-name">名称</th>
             <th class="cell-status">进度</th>
           </tr>
         </thead>

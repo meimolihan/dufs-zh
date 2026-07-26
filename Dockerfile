@@ -24,7 +24,7 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/src/target \
-    touch src/main.rs && \
+    touch src/main.rs src/server.rs && \
     cargo install --path . --root /
 
 # ---- Final stage: minimal image ----

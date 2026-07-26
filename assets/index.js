@@ -269,10 +269,8 @@ class Uploader {
     const encodedName = encodedStr(name);
     $uploadersTable.insertAdjacentHTML("beforeend", `
   <tr id="upload${idx}" class="uploader">
-    <td class="path cell-icon">
-      ${getPathSvg()}
-    </td>
     <td class="path cell-name">
+      ${getPathSvg()}
       <a href="${url}">${encodedName}</a>
     </td>
     <td class="cell-status upload-status" id="uploadStatus${idx}"></td>
@@ -474,7 +472,7 @@ function renderPathsTableHead() {
   const headerItems = [
     {
       name: "name",
-      props: `colspan="2"`,
+      props: ``,
       text: "名称",
     },
     {
@@ -579,13 +577,12 @@ function addPath(file, index) {
   </td>`;
 
   let sizeDisplay = isDir ? formatDirSize(file.size) : formatFileSize(file.size).join(" ");
+  const fileCategory = isDir ? 'file-dir' : getFileCategory(file.name);
 
   $pathsTableBody.insertAdjacentHTML("beforeend", `
-<tr id="addPath${index}">
-  <td class="path cell-icon">
-    ${getPathSvg(file.path_type)}
-  </td>
+<tr id="addPath${index}" class="${fileCategory}">
   <td class="path cell-name">
+    ${getPathSvg(file.path_type)}
     <a href="${url}" ${isDir ? "" : `target="_blank"`}>${encodedName}</a>
   </td>
   <td class="cell-mtime">${formatMtime(file.mtime)}</td>
@@ -1000,6 +997,23 @@ function getPathSvg(path_type) {
     default:
       return ICONS.file;
   }
+}
+
+function getFileCategory(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  const categories = {
+    'file-img': ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico', 'tiff', 'tif', 'avif', 'heic'],
+    'file-video': ['mp4', 'mov', 'avi', 'wmv', 'flv', 'webm', 'mkv', 'm4v', 'mpg', 'mpeg'],
+    'file-audio': ['mp3', 'ogg', 'wav', 'm4a', 'flac', 'aac', 'wma', 'opus'],
+    'file-code': ['js', 'ts', 'jsx', 'tsx', 'py', 'rs', 'go', 'java', 'c', 'cpp', 'h', 'hpp', 'css', 'scss', 'less', 'html', 'htm', 'json', 'xml', 'yaml', 'yml', 'toml', 'sh', 'bash', 'zsh', 'ps1', 'rb', 'php', 'swift', 'kt', 'lua', 'r', 'sql', 'vue', 'svelte'],
+    'file-doc': ['md', 'txt', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'rtf', 'odt', 'ods', 'csv', 'log'],
+    'file-archive': ['zip', 'tar', 'gz', 'tgz', '7z', 'rar', 'xz', 'bz2', 'zst', 'lz4'],
+    'file-font': ['ttf', 'otf', 'woff', 'woff2'],
+  };
+  for (const [cls, exts] of Object.entries(categories)) {
+    if (exts.includes(ext)) return cls;
+  }
+  return '';
 }
 
 function formatMtime(mtime) {
