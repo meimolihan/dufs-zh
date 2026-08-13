@@ -752,6 +752,56 @@ body.splash-active .main.reveal {
 }
 
 /* ============================================================
+   RESPONSIVE — NON-DESKTOP (< 1024px)
+   Hide the time (and size) columns on mobile/tablet so long
+   file names stay readable. Desktop (≥ 1024px) keeps them.
+
+   The table uses a fixed layout: it always spans the full
+   container width (adaptive) and the name column shrinks,
+   truncating over-long file names with an ellipsis.
+   ============================================================ */
+@media (max-width: 1023.98px) {
+  .paths-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .paths-table .cell-mtime {
+    display: none;
+  }
+
+  .paths-table .cell-size {
+    display: none;
+  }
+
+  .paths-table td.cell-actions,
+  .paths-table th.cell-actions {
+    width: 165px;
+  }
+
+  .paths-table td.cell-name {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .paths-table td.cell-name svg {
+    flex-shrink: 0;
+    top: 0;
+  }
+
+  .paths-table td.cell-name a {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ============================================================
    RESPONSIVE — TABLET (≤ 768px)
    ============================================================ */
 @media (max-width: 768px) {
@@ -799,19 +849,6 @@ body.splash-active .main.reveal {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     padding: 12px;
-  }
-
-  .paths-table .cell-mtime {
-    display: none;
-  }
-
-  .paths-table .cell-size {
-    display: none;
-  }
-
-  .paths-table td.cell-actions,
-  .paths-table th.cell-actions {
-    width: auto;
   }
 
   .editor {
