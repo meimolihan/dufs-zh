@@ -66,6 +66,68 @@ cargo build --release
 
 ---
 
+## 安装与运维（systemd）
+
+### 一键安装（自动下载最新二进制）
+
+```sh
+bash <(curl -fsSL https://raw.githubusercontent.com/meimolihan/dufs-zh/main/scripts/install.sh)
+```
+
+安装脚本会从 GitHub Release 自动下载与机器架构匹配的静态二进制
+（`x86_64` / `arm64` / `armv7` / `386`），安装至 `/usr/local/bin/dufs`
+并注册 systemd 服务 `dufs.service`，默认监听 `0.0.0.0:5000`。
+
+### 静默参数安装
+
+```sh
+# 指定端口与数据目录（数据目录即对外提供服务的根目录）
+bash <(curl -fsSL https://raw.githubusercontent.com/meimolihan/dufs-zh/main/scripts/install.sh) -p 8081 -d /vol1/1000/downloads
+
+# 免交互，全部使用默认值
+bash scripts/install.sh -y
+
+# 指定安装版本（默认最新 Release）
+bash scripts/install.sh -v 1.0.0
+
+# 使用本地编译的二进制（跳过下载）
+bash scripts/install.sh -b ./target/release/dufs
+```
+
+| 参数 | 说明 | 默认 |
+| --- | --- | --- |
+| `-p, --port` | 监听端口 | `5000` |
+| `-d, --data` | 数据目录（服务的根目录） | `/var/lib/dufs` |
+| `-v, --version` | 发布版本，如 `1.0.0` | 最新 Release |
+| `-b, --bin` | 本地二进制路径 | 自动下载 |
+| `-y, --yes` | 免交互使用默认值 | - |
+
+> 脚本需以 root 运行；可重复执行，升级即重新运行本脚本（自动覆盖二进制并重启）。
+
+### systemctl 常用命令
+
+```sh
+systemctl status dufs       # 查看状态
+systemctl restart dufs      # 重启服务
+systemctl stop dufs         # 停止服务
+systemctl start dufs        # 启动服务
+systemctl enable dufs       # 设置开机自启
+journalctl -u dufs -f       # 跟随日志
+journalctl -u dufs -n 50    # 最近 50 行日志
+```
+
+### 卸载
+
+```sh
+# 保留数据目录（推荐）
+bash <(curl -fsSL https://raw.githubusercontent.com/meimolihan/dufs-zh/main/scripts/uninstall.sh) -y
+
+# 连数据目录一起删除（--purge）
+bash scripts/uninstall.sh -y --purge
+```
+
+---
+
 ## 部署教程
 
 ### Docker 部署
@@ -766,6 +828,45 @@ Dufs 在根路径暴露了 WebDAV 端点，可直接挂载为网络驱动器：
 | **Linux**（命令行）| `rclone mount dufs:/ /mnt/dufs --daemon` |
 
 > 若需通过 WebDAV 写入，请以 `-A` 或 `--allow-upload --allow-delete` 启动 dufs。
+
+---
+
+## 版本发布
+
+发布由 `scripts/build-and-push.sh` 一条命令触发，本地**不做任何编译**：
+
+```sh
+cd /vol1/1000/GitHub/dufs-zh
+bash scripts/build-and-push.sh v1.0.0 --yes
+```
+
+脚本自动：更新 `Cargo.toml` / `Cargo.lock` 版本号 → 推送 main → 打 `v1.0.0` tag。
+Tag 推送后 GitHub Actions 自动完成全部构建与发布。
+
+### 触发链路
+
+| 动作 | 触发 |
+| --- | --- |
+| 日常直接 push（任何分支） | 不触发任何工作流 |
+| PR / 手动 dispatch | CI（Ubuntu/macOS/Windows 测试 + clippy） |
+| 推送 `v*` tag（仅构建脚本打出） | release.yaml 构建多架构二进制资产 + Docker 镜像 |
+
+### 自动发布产物
+
+- **GitHub Release**：多架构静态二进制 `dufs-<版本>-<target>.tar.gz`
+  （x86_64/aarch64/armv7/arm/i686 Linux、macOS、Windows）
+- **Docker 镜像**：`mobufan/dufs-zh:latest` 与 `mobufan/dufs-zh:<版本>`
+  （`linux/amd64`、`linux/arm64`、`linux/386`、`linux/arm/v7`）
+
+发布后验证：
+
+```sh
+gh release view v1.0.0                      # 查看 Release 资产
+docker pull mobufan/dufs-zh:v1.0.0          # 拉取版本镜像
+```
+
+> 注意：推送 Docker 镜像需要仓库配置 `DOCKERHUB_USERNAME`、`DOCKERHUB_TOKEN`
+> 两个 secret（Docker Hub 账号 `mobufan` 的 token）。
 
 ---
 
