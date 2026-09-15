@@ -140,6 +140,7 @@ jobs:
       with:
         draft: false
         files: ${{ steps.package.outputs.archive }}
+        body_path: RELEASE_NOTES.md
         prerelease: ${{ steps.check-tag.outputs.rc == 'true' }}
 
   docker:

@@ -837,7 +837,7 @@ Dufs 在根路径暴露了 WebDAV 端点，可直接挂载为网络驱动器：
 
 ```sh
 cd /vol1/1000/GitHub/dufs-zh
-bash scripts/build-and-push.sh v1.0.0 --yes
+bash scripts/build-and-push.sh v1.0.0 --yes -m "本次发布的说明文字"
 ```
 
 脚本自动：更新 `Cargo.toml` / `Cargo.lock` 版本号 → 推送 main → 打 `v1.0.0` tag。
