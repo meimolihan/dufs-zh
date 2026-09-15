@@ -70,8 +70,8 @@ i = s.find('name = "dufs"')
 if i < 0:
     raise SystemExit(1)
 j = s.index('version = "', i)
-k = s.index('"', j + 10)
-s = s[:j + 10] + ver + s[k:]
+k = s.index('"', j + 11)
+s = s[:j + 11] + ver + s[k:]
 open(p, 'w').write(s)
 PY
 
