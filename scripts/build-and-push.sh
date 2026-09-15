@@ -89,7 +89,6 @@ grep -n -A1 '^name = "dufs"$' Cargo.lock | grep '^.*version = '
 # ===================== 写发版备注 =====================
 info "写入发版备注 RELEASE_NOTES.md"
 {
-  printf '# %s\n\n' "${TAG}"
   if [ -n "${MSG}" ]; then
     printf '%s\n' "${MSG}"
   fi
