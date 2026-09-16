@@ -223,7 +223,7 @@ info "写入发版备注 RELEASE_NOTES.md"
 
 # ===================== Git 提交 & Tag =====================
 info "提交版本变更"
-git add Cargo.toml Cargo.lock RELEASE_NOTES.md
+git add .
 git commit -m "chore: bump version to ${TARGET_VER}" || info "无版本文件变更，跳过提交"
 git push origin main
 
