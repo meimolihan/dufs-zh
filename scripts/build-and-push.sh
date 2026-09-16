@@ -29,8 +29,34 @@ list_color_init() {
 list_color_init
 
 
+# 拉取本次 tag 触发的 workflow run：tag push 后 Actions 尚未注册新 run，
+# 直接 --limit 1 取最新会取到上一次的陈旧记录。
+# 这里按 tag 过滤并轮询等待，且用 headSha 校验确实是本次 push 的 run。
 get_gh_run_info() {
-    gh run list --workflow=release.yml --limit 1 --json status,displayTitle,headBranch,event,databaseId,startedAt
+    local tag="$1"
+    local expect_sha
+    expect_sha=$(git rev-parse HEAD 2>/dev/null) || expect_sha=""
+
+    local tries=0
+    local max_tries=12
+    local run_json=""
+    local sha=""
+    while (( tries < max_tries )); do
+        run_json=$(gh run list --workflow=release.yml --limit 1 --branch "${tag}" \
+            --json status,displayTitle,headBranch,event,databaseId,startedAt,headSha 2>/dev/null) || run_json=""
+        if [[ -n "$run_json" && "$run_json" != "[]" ]]; then
+            sha=$(echo "$run_json" | jq -r '.[0].headSha')
+            if [[ -z "$expect_sha" || "$sha" == "$expect_sha" ]]; then
+                echo "$run_json"
+                return 0
+            fi
+        fi
+        tries=$((tries + 1))
+        if (( tries < max_tries )); then
+            sleep 5
+        fi
+    done
+    return 1
 }
 
 calc_elapsed() {
@@ -54,15 +80,18 @@ calc_elapsed() {
 }
 
 beautify_gh_run() {
+    local tag="${1:-}"
     echo -e ""
     echo -e "${gl_zi}>>> GitHub Actions Release 流水线信息${gl_bai}"
     echo -e "${gl_bufan}————————————————————————————————————————————————${gl_bai}"
 
-    json_data=$(get_gh_run_info)
+    json_data=$(get_gh_run_info "${tag}")
     if [[ -z "$json_data" || "$json_data" == "[]" ]]; then
-        echo -e "${gl_hong}[错误] 未找到 release.yaml 流水线运行记录${reset}"
-        echo -e "${gl_bai}检查：gh auth status 确认gh已登录，仓库目录正确${reset}"
+        echo -e "${gl_hong}[错误] 未获取到本次(${tag})流水线运行记录${reset}"
+        echo -e "${gl_bai}可能原因：GitHub Actions 尚未注册该 run，可稍后用以下命令手动查看：${reset}"
+        echo -e "${gl_lv}gh run list --workflow=release.yml --branch ${tag}${reset}"
         echo -e "${gl_bufan}————————————————————————————————————————————————${gl_bai}"
+        exit 1
     fi
 
     status=$(echo "$json_data" | jq -r '.[0].status')
@@ -208,4 +237,4 @@ info "查看发布结果: gh release view ${TAG}"
 info "查看镜像: docker pull mobufan/dufs-zh:${TAG}"
 echo -e "${gl_bai}远程安装命令： ${gl_lv}bash <(curl -sL gitee.com/meimolihan/cmdbox/raw/master/sh/dc_inst_dufs.sh) 5000 /vol1/1000/compose/dufs-zh${gl_bai}"
 
-beautify_gh_run
+beautify_gh_run "${TAG}"
