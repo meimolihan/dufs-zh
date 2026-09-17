@@ -115,6 +115,70 @@ REPO="meimolihan/dufs-zh"
 DEFAULT_BIN_SRC="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)/../target/release/${APP_NAME}"
 # ==================================================
 
+# ================== GitHub 下载加速镜像 ==================
+# 原始 GitHub 地址超时/失败时，按下列顺序依次尝试（末尾必须带斜杠）
+GITHUB_MIRRORS=(
+  "https://ghfast.top/"
+  "https://ghproxy.net/"
+  "https://gh.xxooo.cf/"
+  "https://v6.gh-proxy.org/"
+  "https://githubproxy.cc/"
+)
+# v6.gh-proxy.org 为纯 IPv6 代理：本机未配置 IPv6 地址时剔除，避免空等超时
+if [ ! -s /proc/net/if_inet6 ]; then
+  _no_v6=()
+  for _m in "${GITHUB_MIRRORS[@]}"; do
+    case "${_m}" in
+      *v6.gh-proxy.org*) continue ;;
+    esac
+    _no_v6+=("${_m}")
+  done
+  GITHUB_MIRRORS=("${_no_v6[@]}")
+fi
+
+# 原始 GitHub URL -> 候选地址列表（原始优先，再依次套用各镜像）
+make_url_candidates() {
+  local github_url="$1" p
+  printf '%s\n' "${github_url}"
+  for p in "${GITHUB_MIRRORS[@]}"; do
+    printf '%s\n' "${p}${github_url}"
+  done
+}
+
+# 下载单个文件：候选按序尝试，单链接单次 120s 超时后换源。
+# 用法: download_file <URL> <输出文件> [期望魔数hex]
+#   魔数为可选，用于甄别镜像返回的错误页/截断文件（7f454c46=ELF、1f8b=gzip）。
+# 任一候选成功返回 0；全部失败返回 1。
+download_file() {
+  local url="$1" dst="$2" want="${3:-}" u="" hex=""
+  while IFS= read -r u; do
+    printf "  %s\n" "${gl_hui}--${reset} 尝试下载 ${gl_bai}${u}${reset}"
+    rm -f "${dst}"
+    if command -v curl >/dev/null 2>&1; then
+      if command -v timeout >/dev/null 2>&1; then
+        timeout 120 curl -fsSL --connect-timeout 10 --max-time 120 -o "${dst}" "${u}" 2>/dev/null || continue
+      else
+        curl -fsSL --connect-timeout 10 --max-time 120 -o "${dst}" "${u}" 2>/dev/null || continue
+      fi
+    elif command -v wget >/dev/null 2>&1; then
+      wget -qO "${dst}" --timeout=120 --tries=1 "${u}" 2>/dev/null || continue
+    else
+      return 1
+    fi
+    [ -s "${dst}" ] || continue
+    if [ -n "${want}" ]; then
+      hex="$(head -c 4 "${dst}" | od -An -tx1 | tr -d ' \n')"
+      case "${hex}" in
+        "${want}"*) ;;
+        *) printf "  %s\n" "${gl_huang}[警告]${reset} 内容非预期(${u})，换源重试。" >&2; continue ;;
+      esac
+    fi
+    return 0
+  done < <(make_url_candidates "${url}")
+  return 1
+}
+# ==========================================================
+
 PORT=""
 DATA_DIR=""
 VERSION=""
@@ -244,8 +308,13 @@ map_target() {
 
 # ---- resolve release version (default: latest tag) ----
 resolve_latest_version() {
-  curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-    | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1
+  local tag="" tmp="$(mktemp)"
+  if download_file "https://api.github.com/repos/${REPO}/releases/latest" "${tmp}" ""; then
+    tag="$(sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' "${tmp}" | head -1)"
+  fi
+  rm -f "${tmp}"
+  printf '%s' "${tag}"
+  return 0
 }
 
 [ "$(id -u)" != "0" ] && error "请以 root 身份运行（例如 sudo bash scripts/install.sh）"
@@ -322,7 +391,7 @@ if [ -z "${BIN_SRC}" ]; then
   REL_URL="https://github.com/${REPO}/releases/download/v${VERSION}/dufs-v${VERSION}-${TARGET}.tar.gz"
   ok "准备下载 ${gl_bai}dufs v${VERSION} (${TARGET})${reset}"
   TMP_DIR="$(mktemp -d)"
-  if ! curl -fsSL "${REL_URL}" -o "${TMP_DIR}/dufs.tar.gz"; then
+  if ! download_file "${REL_URL}" "${TMP_DIR}/dufs.tar.gz" "1f8b"; then
     rm -rf "${TMP_DIR}"
     error "下载 Release 二进制失败（${REL_URL}），请用 -v 指定已发布版本"
   fi
