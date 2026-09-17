@@ -1,19 +1,31 @@
-name: Release
+name: Release Pipeline
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-    - 'v*'
+    inputs:
+      tag:
+        description: '要构建的标签 (例如: v1.0.28)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: release-${{ github.ref_name || github.event.inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ github.ref_name || github.event.inputs.tag }}
+  DOCKERHUB_IMAGE: mobufan/dufs-zh
+  GHCR_IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
-  release:
-    name: Publish to Github Releases
-    permissions:
-      contents: write
-    outputs:
-      rc: ${{ steps.check-tag.outputs.rc }}
-
+  build-binaries:
+    name: 编译二进制 (多架构交叉编译)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       matrix:
         include:
@@ -52,122 +64,235 @@ jobs:
           use-cross: true
           cargo-flags: ""
 
-    runs-on: ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
     env:
       BUILD_CMD: cargo
+      RELEASE_TAG: ${{ env.RELEASE_TAG }}
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ format('refs/tags/{0}', github.event.inputs.tag) }}
 
-    - name: Check Tag
-      id: check-tag
-      shell: bash
-      run: |
-        ver=${GITHUB_REF##*/}
-        echo "version=$ver" >> $GITHUB_OUTPUT
-        if [[ "$ver" =~ [0-9]+.[0-9]+.[0-9]+$ ]]; then
-          echo "rc=false" >> $GITHUB_OUTPUT
-        else
-          echo "rc=true" >> $GITHUB_OUTPUT
-        fi
+      - name: Validate tag format
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [[ ! "${{ github.event.inputs.tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+            echo "错误: 标签格式无效，必须以 'v' 开头，例如: v1.0.28"
+            exit 1
+          fi
 
-    - name: Verify Cargo.toml version matches tag
-      shell: bash
-      run: |
-        ver=${GITHUB_REF##*/}
-        want=${ver#v}
-        got=$(grep -E '^version = ' Cargo.toml | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
-        echo "tag version=${want}, Cargo.toml version=${got}"
-        if [[ "$got" != "$want" ]]; then
-          echo "ERROR: Cargo.toml version (${got}) does not match tag (${ver}). Run build-and-push.sh to release." >&2
-          exit 1
-        fi
+      - name: Install Rust Toolchain Components
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-    - name: Install Rust Toolchain Components
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: ${{ matrix.target }}
+      - name: Install cross
+        if: matrix.use-cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
 
-    - name: Install cross
-      if: matrix.use-cross
-      uses: taiki-e/install-action@v2
-      with:
-        tool: cross
+      - name: Overwrite build command env variable
+        if: matrix.use-cross
+        run: echo "BUILD_CMD=cross" >> $GITHUB_ENV
 
-    - name: Overwrite build command env variable
-      if: matrix.use-cross
-      shell: bash
-      run: echo "BUILD_CMD=cross" >> $GITHUB_ENV
+      - name: Build
+        run: $BUILD_CMD build --locked --release --target=${{ matrix.target }} ${{ matrix.cargo-flags }}
 
-    - name: Build
-      shell: bash
-      run: $BUILD_CMD build --locked --release --target=${{ matrix.target }} ${{ matrix.cargo-flags }}
+      - name: Build Archive
+        id: package
+        env:
+          target: ${{ matrix.target }}
+        run: |
+          set -euxo pipefail
 
-    - name: Build Archive
-      shell: bash
-      id: package
-      env:
-        target: ${{ matrix.target }}
-        version:  ${{ steps.check-tag.outputs.version }}
-      run: |
-        set -euxo pipefail
+          version=${RELEASE_TAG#v}
+          bin=dufs
+          dist_dir=`pwd`/dist
+          name=$bin-$version-$target
+          executable=target/$target/release/$bin
 
-        bin=dufs
-        dist_dir=`pwd`/dist
-        name=$bin-$version-$target
-        executable=target/$target/release/$bin
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            executable=$executable.exe
+          fi
 
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-          executable=$executable.exe
-        fi
+          mkdir $dist_dir
+          cp $executable $dist_dir
+          cd $dist_dir
 
-        mkdir $dist_dir
-        cp $executable $dist_dir
-        cd $dist_dir
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+              archive=$dist_dir/$name.zip
+              7z a $archive *
+              echo "archive=dist/$name.zip" >> $GITHUB_OUTPUT
+          else
+              archive=$dist_dir/$name.tar.gz
+              tar -czf $archive *
+              echo "archive=dist/$name.tar.gz" >> $GITHUB_OUTPUT
+          fi
 
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-            archive=$dist_dir/$name.zip
-            7z a $archive *
-            echo "archive=dist/$name.zip" >> $GITHUB_OUTPUT
-        else
-            archive=$dist_dir/$name.tar.gz
-            tar -czf $archive *
-            echo "archive=dist/$name.tar.gz" >> $GITHUB_OUTPUT
-        fi
+          ls -lh $archive
 
-    - name: Publish Archive
-      uses: softprops/action-gh-release@v2
-      with:
-        draft: false
-        files: ${{ steps.package.outputs.archive }}
-        body_path: RELEASE_NOTES.md
-        prerelease: ${{ steps.check-tag.outputs.rc == 'true' }}
+      - name: Upload binaries as artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: dufs-zh-archives
+          path: ${{ steps.package.outputs.archive }}
+          if-no-files-found: error
 
-  docker:
-    name: Publish to Docker Hub
+  publish-release:
+    name: 发布 Release (附带二进制)
+    needs: build-binaries
     runs-on: ubuntu-latest
-    needs: release
+    timeout-minutes: 45
+    outputs:
+      rc: ${{ steps.check-tag.outputs.rc }}
     steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ format('refs/tags/{0}', github.event.inputs.tag) }}
+
+      - name: Check Tag
+        id: check-tag
+        run: |
+          ver=${{ env.RELEASE_TAG }}
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          if [[ "$ver" =~ [0-9]+.[0-9]+.[0-9]+$ ]]; then
+            echo "rc=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "rc=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify Cargo.toml version matches tag
+        run: |
+          ver=${RELEASE_TAG}
+          want=${ver#v}
+          got=$(grep -E '^version = ' Cargo.toml | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "tag version=${want}, Cargo.toml version=${got}"
+          if [[ "$got" != "$want" ]]; then
+            echo "ERROR: Cargo.toml version (${got}) does not match tag (${ver}). Run scripts/build-and-push.sh to release." >&2
+            exit 1
+          fi
+
+      - name: Download binaries
+        uses: actions/download-artifact@v7
+        with:
+          name: dufs-zh-archives
+          path: ./
+          merge-multiple: true
+
+      - name: Prepare release body
+        run: |
+          if [ -f RELEASE_NOTES.md ]; then
+            cp RELEASE_NOTES.md _release_body.md
+          else
+            {
+              echo "Dufs-zh ${{ env.RELEASE_TAG }}"
+              echo ""
+              echo "Docker 镜像："
+              echo "  - Docker Hub：docker pull ${{ env.DOCKERHUB_IMAGE }}:${{ env.RELEASE_TAG }}"
+              echo "  - GHCR：docker pull ${{ env.GHCR_IMAGE }}:${{ env.RELEASE_TAG }}"
+            } > _release_body.md
+          fi
+
+      - name: Create / update Release with binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ env.RELEASE_TAG }}"
+          gh release delete "$TAG" --yes 2>/dev/null || true
+          PRERELEASE_ARGS=()
+          if [ "${{ steps.check-tag.outputs.rc }}" == "true" ]; then
+            PRERELEASE_ARGS=(--prerelease)
+          fi
+          FILES=$(find . -maxdepth 1 -type f \( -name 'dufs-*.tar.gz' -o -name 'dufs-*.zip' \) -printf '%p ')
+          gh release create "$TAG" \
+            --title "Dufs-zh $TAG" \
+            --notes-file _release_body.md \
+            "${PRERELEASE_ARGS[@]}" \
+            $FILES
+
+  build-docker:
+    name: 构建推送 Docker 镜像 (Docker Hub + GHCR)
+    needs: publish-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ format('refs/tags/{0}', github.event.inputs.tag) }}
+
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME || 'mobufan' }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
-        uses: docker/build-push-action@v5
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
         with:
-          file: Dockerfile-release
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          VER="${{ env.RELEASE_TAG }}"
+          VER_NO_V="${VER#v}"
+          TAGS="${{ env.DOCKERHUB_IMAGE }}:${VER},${{ env.DOCKERHUB_IMAGE }}:latest"
+          TAGS="${TAGS},${{ env.GHCR_IMAGE }}:${VER},${{ env.GHCR_IMAGE }}:${VER_NO_V}"
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile-release
+          push: ${{ needs.publish-release.outputs.rc == 'false' }}
+          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7
+          tags: ${{ steps.tags.outputs.tags }}
           build-args: |
             REPO=${{ github.repository }}
-            VER=${{ github.ref_name }}
-          platforms: |
-            linux/amd64
-            linux/arm64
-            linux/386
-            linux/arm/v7
-          push: ${{ needs.release.outputs.rc == 'false' }}
-          tags: mobufan/dufs-zh:latest, mobufan/dufs-zh:${{ github.ref_name }}
+            VER=${{ env.RELEASE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  sync-cnb:
+    name: 同步到 CNB 镜像仓库
+    needs: build-docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ format('refs/tags/{0}', github.event.inputs.tag) }}
+
+      - name: Sync to CNB Repository
+        if: ${{ env.CNB_TOKEN != '' }}
+        env:
+          CNB_TOKEN: ${{ secrets.CNB_ACCESS_TOKEN }}
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:${{ github.workspace }} \
+            -w ${{ github.workspace }} \
+            -e PLUGIN_TARGET_URL="https://cnb.cool/meimolihan/dufs-zh.git" \
+            -e PLUGIN_AUTH_TYPE="https" \
+            -e PLUGIN_USERNAME="cnb" \
+            -e PLUGIN_PASSWORD="$CNB_TOKEN" \
+            -e PLUGIN_FORCE="true" \
+            -e PLUGIN_PUSH_TAGS="true" \
+            tencentcom/git-sync
+
+      - name: Skip CNB sync
+        if: ${{ env.CNB_TOKEN == '' }}
+        env:
+          CNB_TOKEN: ${{ secrets.CNB_ACCESS_TOKEN }}
+        run: echo "::warning::CNB_ACCESS_TOKEN 未配置，跳过同步到 CNB 镜像仓库"

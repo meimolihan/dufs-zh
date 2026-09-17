@@ -2,9 +2,9 @@
 #
 # dufs-zh - 发布脚本（触发 GitHub Actions 自动构建）
 # 不在本地编译任何产物：仅更新版本号、推送代码并打 v 开头 tag。
-# 推送 tag 后由 GitHub Actions 自动完成全部编译与发布：
-#   release.yaml -> 多架构二进制（dufs-<ver>-<target>.tar.gz）创建 GitHub Release
-#                   + multi-arch Docker 镜像（mobufan/dufs-zh:latest + 版本标签）
+# 推送代码、打 tag 后显式调用 gh workflow run 触发发布流水线（日常 push 不会触发）：
+#   release.yml -> 多架构二进制（dufs-<ver>-<target>.tar.gz）创建 GitHub Release
+#                  + multi-arch Docker 镜像（mobufan/dufs-zh:latest + 版本标签）
 #
 # Usage:
 #   TAG(必填) 形如 v1.0.0; --yes 免交互; -m "备注" 可选发版说明
@@ -230,8 +230,23 @@ git push origin main
 git tag "${TAG}"
 git push origin "${TAG}"
 
-# ===================== 交由 CI 自动构建发布 =====================
-info "✅ 已推送 tag ${TAG}，GitHub Actions 将自动完成编译与 Release 创建"
+# ===================== 触发 GitHub Actions 发布流水线 =====================
+# 发布流水线仅支持 workflow_dispatch 手动触发（日常 push / 打 tag 不会触发）。
+# 推送完 tag 后，显式调用 gh workflow run 启动发布流水线。
+info "触发 GitHub Actions 发布流水线 (release.yml, tag=${TAG})"
+if ! command -v gh >/dev/null 2>&1; then
+    warn "未安装 gh CLI，无法自动触发流水线。"
+    warn "请手动运行: gh workflow run release.yml -f tag=${TAG} --ref ${TAG}"
+    exit 0
+fi
+if ! gh workflow run release.yml -f tag="${TAG}" --ref "${TAG}" >/dev/null 2>&1; then
+    warn "gh workflow run 触发失败，请检查："
+    warn "  1. 已执行过 gh auth login 且 token 含 workflow 权限"
+    warn "  2. 远端已推送 tag ${TAG}"
+    warn "  可手动触发: gh workflow run release.yml -f tag=${TAG} --ref ${TAG}"
+    exit 1
+fi
+info "✅ 已推送 tag ${TAG} 并触发 GitHub Actions 发布流水线"
 
 info "查看发布结果: gh release view ${TAG}"
 info "查看镜像: docker pull mobufan/dufs-zh:${TAG}"
