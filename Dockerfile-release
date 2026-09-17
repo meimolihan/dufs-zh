@@ -1,4 +1,4 @@
-FROM alpine as builder
+FROM alpine AS builder
 ARG REPO VER TARGETPLATFORM
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \ 
         TARGET="x86_64-unknown-linux-musl"; \
