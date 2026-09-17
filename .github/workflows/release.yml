@@ -108,7 +108,7 @@ jobs:
         run: |
           set -euxo pipefail
 
-          version=${RELEASE_TAG#v}
+          version=${RELEASE_TAG}
           bin=dufs
           dist_dir=`pwd`/dist
           name=$bin-$version-$target
@@ -137,7 +137,7 @@ jobs:
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: dufs-zh-archives
+          name: dufs-zh-archives-${{ matrix.target }}
           path: ${{ steps.package.outputs.archive }}
           if-no-files-found: error
 
@@ -178,7 +178,6 @@ jobs:
       - name: Download binaries
         uses: actions/download-artifact@v7
         with:
-          name: dufs-zh-archives
           path: ./
           merge-multiple: true
 
