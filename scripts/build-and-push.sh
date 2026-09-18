@@ -218,7 +218,11 @@ info "写入发版备注 RELEASE_NOTES.md"
 {
   if [ -n "${MSG}" ]; then
     printf '%s\n' "${MSG}"
+    printf '\n'
   fi
+  printf 'Docker 镜像：\n'
+  printf '  - Docker Hub：docker pull mobufan/dufs-zh:%s\n' "${TAG}"
+  printf '  - GHCR：docker pull ghcr.io/meimolihan/dufs-zh:%s\n' "${TAG}"
 } > RELEASE_NOTES.md
 
 # ===================== Git 提交 & Tag =====================
