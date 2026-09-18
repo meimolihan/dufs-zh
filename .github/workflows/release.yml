@@ -29,7 +29,7 @@ jobs:
       matrix:
         include:
         - target: aarch64-unknown-linux-musl
-          os: ubuntu-latest
+          os: ubuntu-24.04
           use-cross: true
           cargo-flags: ""
         - target: aarch64-apple-darwin
@@ -47,19 +47,19 @@ jobs:
           os: windows-latest
           cargo-flags: ""
         - target: x86_64-unknown-linux-musl
-          os: ubuntu-latest
+          os: ubuntu-24.04
           use-cross: true
           cargo-flags: ""
         - target: i686-unknown-linux-musl
-          os: ubuntu-latest
+          os: ubuntu-24.04
           use-cross: true
           cargo-flags: ""
         - target: armv7-unknown-linux-musleabihf
-          os: ubuntu-latest
+          os: ubuntu-24.04
           use-cross: true
           cargo-flags: ""
         - target: arm-unknown-linux-musleabihf
-          os: ubuntu-latest
+          os: ubuntu-24.04
           use-cross: true
           cargo-flags: ""
 
@@ -144,7 +144,7 @@ jobs:
   publish-release:
     name: 发布 Release (附带二进制)
     needs: build-binaries
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     outputs:
       rc: ${{ steps.check-tag.outputs.rc }}
@@ -215,7 +215,7 @@ jobs:
   build-docker:
     name: 构建推送 Docker 镜像 (Docker Hub + GHCR)
     needs: publish-release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
@@ -267,7 +267,7 @@ jobs:
   sync-cnb:
     name: 同步到 CNB 镜像仓库
     needs: build-docker
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
