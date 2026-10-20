@@ -1592,3 +1592,508 @@ html.theme-ripple-reverse .theme-toggle .icon-moon {
   from { opacity: 1; transform: rotate(0deg) scale(1); }
   to   { opacity: 0; transform: rotate(120deg) scale(0.3); }
 }
+
+/* ============================================================
+   【UI 标准化修复】Soft-UI 柔质双主题校准
+   ------------------------------------------------------------
+   · 纯附加样式 / CSS 变量覆盖：不新增 DOM、不改布局、不改交互
+   · 暗色样式一律嵌套于项目原有暗色根选择器：
+       html.dark        → 用户显式选择深色
+       html:not(.light) → 系统偏好深色（沿用项目原有写法）
+   ============================================================ */
+
+/* ============================================================
+   1. 亮色主题：对比度 / 去死白 / 冷调柔阴影 / 动效统一
+   ============================================================ */
+:root {
+  /* 强调色：原 #00b4d8 在白底仅 2.46:1（低于 WCAG AA 4.5:1）。
+     改为同色相深青，正文/链接 6.16:1，图形元素仍清晰可辨 */
+  --accent: #0a6b85;
+  --accent-hover: #085567;
+  /* 次要/危险强调：复用项目原有 --accent-2，加深至 6.05:1 */
+  --accent-2: #b32a6e;
+  --accent-2-hover: #96215a;
+  --accent-2-light: rgba(179, 42, 110, 0.1);
+
+  /* 层级背景：取消 #ffffff 死白，改为低饱和柔白（页面底/卡片/悬浮三级） */
+  --bg-surface: #f6f7fa;
+  --bg-card: #fbfcfe;
+
+  /* 文字三级：标题 85% / 次级 60% / 辅助 45% 灰阶（原 --text-muted 在斑马行上仅 4.36:1） */
+  --text-muted: #4c5871;
+
+  /* 冷调柔和阴影（浅色主题，替代纯黑投影） */
+  --shadow-xs: 0 1px 2px rgba(26, 38, 66, 0.06);
+  --shadow-sm: 0 1px 3px rgba(26, 38, 66, 0.08), 0 1px 2px rgba(26, 38, 66, 0.04);
+  --shadow-md: 0 4px 18px rgba(26, 38, 66, 0.09), 0 2px 6px rgba(26, 38, 66, 0.05);
+  --shadow-lg: 0 14px 38px rgba(26, 38, 66, 0.12), 0 6px 14px rgba(26, 38, 66, 0.05);
+
+  /* 全局动效统一：0.2s ease（落在 0.2s~0.3s 规范区间内） */
+  --transition: 0.2s ease;
+
+  /* 文件类型色（与暗色主题一一对应，8 色低饱和，静默可辨） */
+  --ft-dir: #0a6b85;
+  --ft-img: #b32a6e;
+  --ft-video: #6b4fa8;
+  --ft-audio: #a85a1e;
+  --ft-code: #3f7d4f;
+  --ft-doc: #0a6b85;
+  --ft-archive: #8a6a1f;
+  --ft-font: #6b4fa8;
+}
+
+/* ============================================================
+   2. 暗色主题：低饱和炭灰蓝 / 无纯黑阴影 / 文字三级分级
+   ============================================================ */
+html.dark {
+  --bg: #10141d;
+  --bg-surface: #151a25;
+  --bg-card: #171d29;
+  --bg-elevated: #1e2533;
+  --bg-inset: #12161f;
+
+  --text-primary: #d8e0f0;
+  --text-secondary: #a8b4cc;
+  --text-muted: #7d8aa6;
+
+  --border: #232b3a;
+  --border-strong: #2f3a4d;
+
+  --accent: #4ecfe0;
+  --accent-hover: #8ad9e6;
+  --accent-light: rgba(78, 207, 224, 0.10);
+  --accent-muted: rgba(78, 207, 224, 0.07);
+  --accent-2: #e07aa6;
+  --accent-2-hover: #eda2c2;
+  --accent-2-light: rgba(224, 122, 166, 0.12);
+
+  --neon-cyan: #4ecfe0;
+  --neon-magenta: #e07aa6;
+  --neon-purple: #a98ad6;
+  --neon-green: #8cc46a;
+  --neon-amber: #d9b45a;
+
+  /* 深色主题阴影：禁用纯黑，改低饱和冷色柔阴影 + 极弱青色漫射 */
+  --shadow-xs: 0 1px 2px rgba(6, 10, 20, 0.5);
+  --shadow-sm: 0 1px 3px rgba(6, 10, 20, 0.55);
+  --shadow-md: 0 4px 14px rgba(6, 10, 20, 0.58), 0 1px 2px rgba(78, 207, 224, 0.04);
+  --shadow-lg: 0 10px 28px rgba(6, 10, 20, 0.62), 0 2px 6px rgba(78, 207, 224, 0.05);
+
+  --ft-dir: #4ecfe0;
+  --ft-img: #e07aa6;
+  --ft-video: #a98ad6;
+  --ft-audio: #d9a06a;
+  --ft-code: #8cc46a;
+  --ft-doc: #4ecfe0;
+  --ft-archive: #d9b45a;
+  --ft-font: #a98ad6;
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) {
+    --bg: #10141d;
+    --bg-surface: #151a25;
+    --bg-card: #171d29;
+    --bg-elevated: #1e2533;
+    --bg-inset: #12161f;
+
+    --text-primary: #d8e0f0;
+    --text-secondary: #a8b4cc;
+    --text-muted: #7d8aa6;
+
+    --border: #232b3a;
+    --border-strong: #2f3a4d;
+
+    --accent: #4ecfe0;
+    --accent-hover: #8ad9e6;
+    --accent-light: rgba(78, 207, 224, 0.10);
+    --accent-muted: rgba(78, 207, 224, 0.07);
+    --accent-2: #e07aa6;
+    --accent-2-hover: #eda2c2;
+    --accent-2-light: rgba(224, 122, 166, 0.12);
+
+    --neon-cyan: #4ecfe0;
+    --neon-magenta: #e07aa6;
+    --neon-purple: #a98ad6;
+    --neon-green: #8cc46a;
+    --neon-amber: #d9b45a;
+
+    --shadow-xs: 0 1px 2px rgba(6, 10, 20, 0.5);
+    --shadow-sm: 0 1px 3px rgba(6, 10, 20, 0.55);
+    --shadow-md: 0 4px 14px rgba(6, 10, 20, 0.58), 0 1px 2px rgba(78, 207, 224, 0.04);
+    --shadow-lg: 0 10px 28px rgba(6, 10, 20, 0.62), 0 2px 6px rgba(78, 207, 224, 0.05);
+
+    --ft-dir: #4ecfe0;
+    --ft-img: #e07aa6;
+    --ft-video: #a98ad6;
+    --ft-audio: #d9a06a;
+    --ft-code: #8cc46a;
+    --ft-doc: #4ecfe0;
+    --ft-archive: #d9b45a;
+    --ft-font: #a98ad6;
+
+    color-scheme: dark;
+  }
+}
+
+html.light {
+  color-scheme: light;
+}
+
+/* ============================================================
+   3. 头部：去除硬白底渐变，改低饱和柔白；分割线弱化
+   ============================================================ */
+.head {
+  background: linear-gradient(180deg, rgba(250, 251, 253, 0.96) 0%, rgba(238, 240, 245, 0.92) 100%);
+  border-bottom-color: var(--border);
+  box-shadow: 0 1px 0 rgba(26, 38, 66, 0.04), 0 4px 16px rgba(26, 38, 66, 0.06);
+}
+
+html.dark .head,
+html:not(.light) .head {
+  background: linear-gradient(180deg, rgba(23, 29, 41, 0.96) 0%, rgba(18, 23, 33, 0.92) 100%);
+  border-bottom-color: rgba(78, 207, 224, 0.10);
+  box-shadow: 0 1px 0 rgba(78, 207, 224, 0.05), 0 4px 18px rgba(6, 10, 20, 0.45);
+}
+
+/* ============================================================
+   4. 卡片：极淡渐变底 + 半透明内描边（Soft-UI 层次）
+   ============================================================ */
+.index-page {
+  background-color: var(--bg-card);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0) 140px);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+html.dark .index-page,
+html:not(.light) .index-page {
+  /* 半透明材质 + 毛玻璃，替代原多彩霓虹渐变描边 */
+  background:
+    linear-gradient(rgba(23, 29, 41, 0.78), rgba(23, 29, 41, 0.78)) padding-box,
+    linear-gradient(180deg, rgba(78, 207, 224, 0.20), rgba(78, 207, 224, 0.06)) border-box;
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.empty-folder,
+.not-editable {
+  background-color: var(--bg-inset);
+  box-shadow: var(--shadow-xs), inset 0 1px 3px rgba(26, 38, 66, 0.05);
+}
+
+html.dark .empty-folder,
+html:not(.light) .empty-folder,
+html.dark .not-editable,
+html:not(.light) .not-editable {
+  box-shadow: var(--shadow-xs), inset 0 1px 3px rgba(6, 10, 20, 0.35);
+}
+
+/* ============================================================
+   5. 表格：斑马纹弱化 / 表头分割线弱化 / 时间尺寸列可读
+   ============================================================ */
+.paths-table tbody tr:nth-child(even) {
+  background-color: rgba(26, 38, 66, 0.045);
+}
+
+html.light .paths-table tbody tr:nth-child(even) {
+  background-color: rgba(26, 38, 66, 0.045);
+}
+
+.paths-table tbody tr {
+  border-bottom-color: rgba(26, 38, 66, 0.055);
+}
+
+.uploaders-table th,
+.paths-table th {
+  /* 以色差替代生硬实线 */
+  border-bottom: 2px solid var(--border);
+  color: var(--text-secondary);
+}
+
+html.dark .uploaders-table th,
+html.dark .paths-table th,
+html:not(.light) .uploaders-table th,
+html:not(.light) .paths-table th {
+  border-bottom-color: rgba(78, 207, 224, 0.12);
+  color: var(--text-secondary);
+}
+
+html.dark .paths-table thead a,
+html:not(.light) .paths-table thead a {
+  color: var(--text-secondary);
+}
+
+html.dark .paths-table tbody tr,
+html:not(.light) .paths-table tbody tr {
+  border-bottom-color: rgba(78, 207, 224, 0.05);
+}
+
+html.dark .paths-table tbody tr:nth-child(even),
+html:not(.light) .paths-table tbody tr:nth-child(even) {
+  background-color: rgba(78, 207, 224, 0.028);
+}
+
+/* ============================================================
+   6. 文件类型色：双主题统一，移除霓虹光晕
+   ============================================================ */
+.paths-table tbody tr.file-dir svg { fill: var(--ft-dir); }
+.paths-table tbody tr.file-img svg { fill: var(--ft-img); }
+.paths-table tbody tr.file-video svg { fill: var(--ft-video); }
+.paths-table tbody tr.file-audio svg { fill: var(--ft-audio); }
+.paths-table tbody tr.file-code svg { fill: var(--ft-code); }
+.paths-table tbody tr.file-doc svg { fill: var(--ft-doc); }
+.paths-table tbody tr.file-archive svg { fill: var(--ft-archive); }
+.paths-table tbody tr.file-font svg { fill: var(--ft-font); }
+
+html.dark tr.file-dir svg,
+html.dark tr.file-img svg,
+html.dark tr.file-video svg,
+html.dark tr.file-audio svg,
+html.dark tr.file-code svg,
+html.dark tr.file-doc svg,
+html.dark tr.file-archive svg,
+html.dark tr.file-font svg,
+html:not(.light) tr.file-dir svg,
+html:not(.light) tr.file-img svg,
+html:not(.light) tr.file-video svg,
+html:not(.light) tr.file-audio svg,
+html:not(.light) tr.file-code svg,
+html:not(.light) tr.file-doc svg,
+html:not(.light) tr.file-archive svg,
+html:not(.light) tr.file-font svg {
+  /* 去掉全域发光，仅保留低饱和色相区分 */
+  filter: none;
+}
+
+/* ============================================================
+   7. 悬浮/聚焦态：去除霓虹光晕，保留低强度漫射
+   ============================================================ */
+html.dark .path svg,
+html:not(.light) .path svg {
+  filter: none;
+}
+
+html.dark .action-btn:hover,
+html:not(.light) .action-btn:hover {
+  background-color: rgba(78, 207, 224, 0.10);
+  color: var(--accent);
+  filter: none;
+}
+
+html.dark .paths-table tbody tr:hover,
+html:not(.light) .paths-table tbody tr:hover {
+  background-color: rgba(78, 207, 224, 0.09);
+  box-shadow: inset 3px 0 0 rgba(78, 207, 224, 0.55);
+}
+
+html.dark .path a:hover,
+html:not(.light) .path a:hover {
+  color: var(--accent-hover);
+  text-shadow: none;
+}
+
+html.dark .breadcrumb > a:hover,
+html:not(.light) .breadcrumb > a:hover {
+  background-color: rgba(78, 207, 224, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(78, 207, 224, 0.14);
+}
+
+html.dark .searchbar:focus-within,
+html:not(.light) .searchbar:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(78, 207, 224, 0.14);
+}
+
+html.dark .theme-toggle:hover,
+html.dark .back-to-top:hover,
+html:not(.light) .theme-toggle:hover,
+html:not(.light) .back-to-top:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(78, 207, 224, 0.14);
+  color: var(--accent);
+}
+
+html.dark .empty-folder,
+html:not(.light) .empty-folder {
+  border-color: rgba(78, 207, 224, 0.10);
+  box-shadow: var(--shadow-xs), inset 0 1px 3px rgba(6, 10, 20, 0.35);
+}
+
+/* ============================================================
+   8. 危险/次要操作：统一 --accent-2，去除高饱和霓虹粉
+   ============================================================ */
+.logout-btn:hover {
+  background-color: var(--accent-2-light);
+  color: var(--accent-2);
+  border-color: rgba(179, 42, 110, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(179, 42, 110, 0.12);
+}
+
+.logout-btn:hover svg {
+  fill: var(--accent-2);
+}
+
+.retry-btn {
+  color: var(--accent-2);
+}
+
+.retry-btn:hover {
+  background-color: var(--accent-2-light);
+  color: var(--accent-2-hover);
+  box-shadow: inset 0 0 0 1px rgba(179, 42, 110, 0.18);
+  border-color: rgba(179, 42, 110, 0.28);
+}
+
+html.dark .logout-btn:hover,
+html:not(.light) .logout-btn:hover {
+  background-color: rgba(224, 122, 166, 0.12);
+  color: var(--accent-2);
+  border-color: rgba(224, 122, 166, 0.28);
+}
+
+html.dark .logout-btn:hover svg,
+html:not(.light) .logout-btn:hover svg {
+  fill: var(--accent-2);
+}
+
+html.dark .retry-btn,
+html:not(.light) .retry-btn {
+  color: var(--accent-2);
+}
+
+html.dark .retry-btn:hover,
+html:not(.light) .retry-btn:hover {
+  background-color: rgba(224, 122, 166, 0.12);
+  color: var(--accent-2-hover);
+  border-color: rgba(224, 122, 166, 0.28);
+}
+
+/* ============================================================
+   9. 动效统一：全部过渡收敛到 0.2s~0.3s ease
+   ============================================================ */
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.splash {
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+body.splash-active .head.reveal,
+body.splash-active .main.reveal {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.theme-ripple-mask-a {
+  transition: opacity 0.2s ease;
+}
+
+/* ============================================================
+   10. 热区扩展：仅用 ::after 扩大可点击范围，不改变任何布局尺寸
+   ============================================================ */
+.toolbox .control,
+.upload-file label,
+.login-btn,
+.save-btn,
+.logout-btn,
+.action-btn,
+.searchbar #search {
+  position: relative;
+}
+
+.toolbox .control::after,
+.upload-file label::after,
+.login-btn::after,
+.save-btn::after,
+.logout-btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+}
+
+.action-btn::after,
+.action-btn a::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 44px;
+}
+
+.searchbar #search::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 44px;
+}
+
+/* ============================================================
+   11. 移动端：清除 hover 伪类残留效果
+   ============================================================ */
+@media (hover: none) {
+  .toolbox .control:hover,
+  .upload-file label:hover,
+  .login-btn:hover,
+  .save-btn:hover,
+  .logout-btn:hover,
+  .action-btn:hover,
+  .paths-table thead a:hover,
+  .breadcrumb > a:hover,
+  .path a:hover {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--text-secondary);
+  }
+
+  .action-btn:hover svg,
+  .toolbox .control:hover svg,
+  .upload-file label:hover svg {
+    fill: currentColor;
+  }
+
+  .paths-table tbody tr:hover {
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .paths-table tbody tr:nth-child(even):hover {
+    background-color: rgba(26, 38, 66, 0.045);
+  }
+
+  html.dark .paths-table tbody tr:nth-child(even):hover,
+  html:not(.light) .paths-table tbody tr:nth-child(even):hover {
+    background-color: rgba(78, 207, 224, 0.028);
+  }
+
+  .theme-toggle:hover,
+  .back-to-top:hover {
+    background-color: var(--bg-surface);
+    border-color: var(--border);
+    box-shadow: var(--shadow-md);
+    color: var(--text-secondary);
+  }
+
+  html.dark .theme-toggle:hover,
+  html.dark .back-to-top:hover,
+  html:not(.light) .theme-toggle:hover,
+  html:not(.light) .back-to-top:hover {
+    background: #151a25;
+    border-color: rgba(78, 207, 224, 0.20);
+    box-shadow: var(--shadow-md);
+    color: var(--text-secondary);
+  }
+}
