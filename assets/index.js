@@ -95,10 +95,319 @@ function toggleTheme() {
   } else {
     applyTheme(newTheme);
   }
+
+  // ↓↓↓ 【新增 · 仅动画钩子】追加在原有点击事件末尾，不改动上方任何主题业务逻辑 ↓↓↓
+  ThemeRipple.trigger(newTheme);
+  // ↑↑↑ 【新增 · 仅动画钩子】 ↑↑↑
 }
 
 // Apply immediately to avoid flash
 applyTheme(getPreferredTheme());
+
+/* ============================================================
+   【新增】主题切换动画钩子 —— 双遮罩 Clip-Path 圆形波纹（方案 A）
+   ------------------------------------------------------------
+   本模块只负责"播放动画"，绝不触碰主题业务逻辑：
+   · 不读取/写入 localStorage，不判定主题状态，不切换主题 Class
+   · 唯一被"接管"的只有"何时执行原业务代码提供的写入回调"，
+     这是为了让遮罩层能先铺满屏幕、从而消除反向切换的闪色撕裂
+   用法：把 trigger(...) 追加到原有点击事件末尾（见 toggleTheme 末尾）
+   ============================================================ */
+const ThemeRipple = (() => {
+  const CONFIG = {
+    // 总开关：false 时完全不介入，主题切换退化为原生行为
+    enabled: true,
+    // 动画范围：
+    //   "both"          两个方向都使用遮罩动画（默认，方案 A）
+    //   "native-forward" 浅色 → 暗色保留原生 View Transition 动画，仅反向使用遮罩 B
+    //   "native-reverse" 仅 浅色 → 暗色 使用遮罩 A，反向走原生动画
+    mode: "both",
+    // 动画状态锁：动画进行中再次点击时不再叠加新动画，避免动画错乱
+    lock: true,
+    // 未调用 trigger() 时的兜底延时（毫秒），确保主题写入不会丢失
+    fallbackDelay: 200,
+  };
+
+  const root = document.documentElement;
+  let locked = false;
+  // 等待"择机执行"的原业务写入回调（由被接管的 startViewTransition 暂存）
+  let pendingUpdate = null;
+  let fallbackTimer = 0;
+
+  const q = (sel) => document.querySelector(sel);
+  const wait = (ms) => new Promise((r) => window.setTimeout(r, ms));
+
+  /** 等待一次绘制完成（连续两帧 rAF）。
+   *  同时用 setTimeout 兜底：页面在后台标签页 / 无合成器环境下 rAF 可能被暂停，
+   *  若完全依赖 rAF 会导致动画卡死、主题迟迟不切换。 */
+  function afterPaint() {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(() => window.requestAnimationFrame(finish));
+      }
+      window.setTimeout(finish, 50);
+    });
+  }
+
+  /** 只读地推断"目标主题"，不修改任何主题状态 */
+  function detectTargetTheme() {
+    const isDark = root.classList.contains("dark") ||
+      (!root.classList.contains("light") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    return isDark ? "light" : "dark";
+  }
+
+  /** 读取 CSS 变量里的时长（支持 s / ms），用于 JS 侧的等待与兜底 */
+  function cssTime(name, fallback) {
+    const raw = window.getComputedStyle(root).getPropertyValue(name).trim();
+    if (!raw) return fallback;
+    if (raw.endsWith("ms")) return parseFloat(raw) || fallback;
+    if (raw.endsWith("s")) return (parseFloat(raw) || 0) * 1000;
+    return fallback;
+  }
+
+  /** 取消"未调用 trigger() 时的兜底写入"定时器 */
+  function cancelFallback() {
+    window.clearTimeout(fallbackTimer);
+    fallbackTimer = 0;
+  }
+
+  /** 执行（或丢弃）暂存的原业务写入回调 */
+  function flushPendingUpdate() {
+    cancelFallback();
+    if (pendingUpdate) {
+      const fn = pendingUpdate;
+      pendingUpdate = null;
+      fn();
+    }
+  }
+
+  /**
+   * 返回一个"静默"的 transition 对象。
+   * ready 永不 resolve —— 借此抑制原有那层单层 clip-path 动画，
+   * 避免与新的遮罩动画叠加（若想保留原生动画，请把 CONFIG.mode 改成
+   * "native-forward" / "native-reverse"）。
+   */
+  function silentTransition() {
+    return {
+      ready: new Promise(() => {}),
+      finished: Promise.resolve(),
+      updateCallbackDone: Promise.resolve(),
+      skipTransition() {},
+    };
+  }
+
+  /**
+   * 安装 View Transition 钩子。
+   * 只接管"何时写入主题"，写入内容依旧由原业务代码提供，本模块不做任何改写。
+   */
+  function install() {
+    if (!CONFIG.enabled) return;
+    const native = typeof document.startViewTransition === "function"
+      ? document.startViewTransition.bind(document)
+      : null;
+
+    document.startViewTransition = function (updateCallback) {
+      if (typeof updateCallback !== "function") {
+        return native ? native(updateCallback) : silentTransition();
+      }
+      if (!CONFIG.enabled) {
+        if (native) return native(updateCallback);
+        updateCallback();
+        return silentTransition();
+      }
+
+      const target = detectTargetTheme();
+      const useRipple =
+        CONFIG.mode === "both" ||
+        (CONFIG.mode === "native-forward" && target === "light") ||
+        (CONFIG.mode === "native-reverse" && target === "dark");
+
+      if (!useRipple) {
+        // 该方向交回原生动画，原有观感保留不动
+        if (native) return native(updateCallback);
+        updateCallback();
+        return silentTransition();
+      }
+
+      if (CONFIG.lock && locked) {
+        // 状态锁生效：丢弃上一次暂存的写入（避免叠加翻色），直接落地本次主题写入
+        cancelFallback();
+        pendingUpdate = null;
+        updateCallback();
+        return silentTransition();
+      }
+
+      // 暂存写入回调，交由 trigger() 在动画编排到合适时机时执行
+      pendingUpdate = updateCallback;
+      cancelFallback();
+      fallbackTimer = window.setTimeout(flushPendingUpdate, CONFIG.fallbackDelay);
+      return silentTransition();
+    };
+  }
+
+  /** 等待遮罩动画结束（带兜底，避免动画事件丢失导致卡死） */
+  function runMaskAnimation(el, className, timeout) {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        el.removeEventListener("animationend", finish);
+        resolve();
+      };
+      el.addEventListener("animationend", finish);
+      window.setTimeout(finish, timeout);
+      el.classList.add(className);
+    });
+  }
+
+  /**
+   * 【动画触发钩子】
+   * 用法：把下面这行追加到原有点击事件末尾（不要替换原有业务代码）
+   *   ThemeRipple.trigger(newTheme);
+   * @param {"dark"|"light"} [targetTheme] 目标主题；不传则自动推断
+   */
+  async function trigger(targetTheme) {
+    if (!CONFIG.enabled) {
+      flushPendingUpdate();
+      return;
+    }
+
+    const target = targetTheme === "dark" || targetTheme === "light"
+      ? targetTheme
+      : detectTargetTheme();
+    const reverse = target === "light"; // 暗色 → 浅色 走遮罩 B
+    const mask = q(reverse ? ".theme-ripple-mask-b" : ".theme-ripple-mask-a");
+    if (!mask) {
+      flushPendingUpdate();
+      return;
+    }
+
+    if (CONFIG.lock && locked) {
+      // 状态锁生效：直接落地主题写入，不再启动新动画
+      flushPendingUpdate();
+      return;
+    }
+
+    // 动画编排已接管本次写入，取消兜底定时器，防止动画中途被提前写入
+    cancelFallback();
+
+    locked = true;
+    const startedAt = performance.now();
+    root.classList.add("theme-ripple-active");
+    root.classList.add(reverse ? "theme-ripple-reverse" : "theme-ripple-forward");
+
+    try {
+      if (reverse) {
+        // 【暗色 → 浅色】盖子瞬间铺满 → 主题在盖子下写入 → 盖子向锚点收缩撤离
+        mask.classList.add("is-active");
+        await afterPaint();
+        flushPendingUpdate();
+        await afterPaint();
+        await runMaskAnimation(
+          mask,
+          "is-collapsing",
+          cssTime("--theme-ripple-collapse-duration", 1300) + 600
+        );
+      } else {
+        // 【浅色 → 暗色】深色遮罩自锚点炸开铺满 → 铺满后再写入暗色主题
+        mask.classList.add("is-active");
+        await afterPaint();
+        await runMaskAnimation(
+          mask,
+          "is-expanding",
+          cssTime("--theme-ripple-expand-duration", 1500) + 600
+        );
+        flushPendingUpdate();
+        await wait(cssTime("--theme-ripple-fade-duration", 180));
+        mask.classList.remove("is-active");
+      }
+
+      // 等图标动画播完，避免收尾时图标突然跳回
+      const iconTotal = cssTime("--theme-ripple-icon-duration", 1000) +
+        cssTime("--theme-ripple-icon-delay", 800);
+      const remain = iconTotal - (performance.now() - startedAt);
+      if (remain > 0) await wait(remain);
+    } finally {
+      mask.classList.remove("is-active", "is-expanding", "is-collapsing");
+      root.classList.remove("theme-ripple-active", "theme-ripple-forward", "theme-ripple-reverse");
+      locked = false;
+    }
+  }
+
+  install();
+
+  return { trigger, install, CONFIG };
+})();
+
+// Back to top
+// The page is scrolled by the window on desktop, by `.main` on mobile
+const BACK_TO_TOP_THRESHOLD = 240;
+const MOBILE_MEDIA_QUERY = "(max-width: 480px)";
+
+function setupBackToTop() {
+  const btn = document.querySelector(".back-to-top");
+  if (!btn) return;
+
+  const main = document.querySelector(".main");
+  const mobileQuery = window.matchMedia(MOBILE_MEDIA_QUERY);
+  const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const isContainerScroll = () => mobileQuery.matches && !!main;
+
+  const getScrollState = () => {
+    if (isContainerScroll()) {
+      return {
+        top: main.scrollTop,
+        max: main.scrollHeight - main.clientHeight,
+      };
+    }
+    const doc = document.scrollingElement || document.documentElement;
+    return {
+      top: window.scrollY || doc.scrollTop || 0,
+      max: doc.scrollHeight - doc.clientHeight,
+    };
+  };
+
+  const update = () => {
+    const { top, max } = getScrollState();
+    const progress = max > 0 ? Math.min(1, Math.max(0, top / max)) : 0;
+    btn.classList.toggle("visible", top > BACK_TO_TOP_THRESHOLD);
+    btn.style.setProperty("--progress", progress.toFixed(4));
+  };
+
+  // scroll 事件本身已按帧节流，直接更新即可；
+  // 不依赖 requestAnimationFrame，避免页面在后台时按钮状态失联
+  const requestUpdate = () => update();
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  if (main) {
+    main.addEventListener("scroll", requestUpdate, { passive: true });
+  }
+  if (mobileQuery.addEventListener) {
+    mobileQuery.addEventListener("change", requestUpdate);
+  } else if (mobileQuery.addListener) {
+    mobileQuery.addListener(requestUpdate);
+  }
+
+  btn.addEventListener("click", () => {
+    const behavior = reduceMotionQuery.matches ? "auto" : "smooth";
+    if (isContainerScroll()) {
+      main.scrollTo({ top: 0, left: 0, behavior });
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior });
+    }
+  });
+
+  update();
+}
 
 const IFRAME_FORMATS = [
   ".pdf",
@@ -193,6 +502,8 @@ async function ready() {
   $loginBtn = document.querySelector(".login-btn");
   $logoutBtn = document.querySelector(".logout-btn");
   $userName = document.querySelector(".user-name");
+
+  setupBackToTop();
 
   addBreadcrumb(DATA.href, DATA.uri_prefix);
 

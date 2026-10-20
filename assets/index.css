@@ -257,16 +257,17 @@ body {
   flex-shrink: 0;
 }
 
-/* ---- Theme toggle (floating) ---- */
-.theme-toggle {
+/* ---- Floating buttons (theme toggle / back to top) ---- */
+.theme-toggle,
+.back-to-top {
   position: fixed;
   bottom: 24px;
-  left: 24px;
   z-index: 200;
   cursor: pointer;
   width: 44px;
   height: 44px;
   padding: 0;
+  margin: 0;
   border-radius: 50%;
   transition: background-color var(--transition), color var(--transition), box-shadow var(--transition), border-color var(--transition);
   color: var(--text-secondary);
@@ -276,12 +277,20 @@ body {
   border: 1px solid var(--border);
   background: var(--bg-surface);
   box-shadow: var(--shadow-md);
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+
+/* Theme toggle — bottom left corner */
+.theme-toggle {
+  left: 24px;
 }
 
 .theme-toggle:hover {
   background-color: var(--accent-light);
   color: var(--accent);
-  border-color: rgba(37, 99, 235, 0.25);
+  border-color: var(--accent-muted);
   box-shadow: var(--shadow-lg);
 }
 
@@ -290,10 +299,58 @@ body {
   transition: opacity var(--transition), transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Default (light) shows the moon, dark mode shows the sun */
 html:not(.dark) .theme-toggle .icon-sun { display: none; }
 html:not(.dark) .theme-toggle .icon-moon { display: block; }
 html.dark .theme-toggle .icon-sun { display: block; }
 html.dark .theme-toggle .icon-moon { display: none; }
+
+/* ---- Back to top — bottom right corner ---- */
+.back-to-top {
+  right: 24px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.9);
+  transition: background-color var(--transition), color var(--transition), box-shadow var(--transition), border-color var(--transition), opacity var(--transition), transform var(--transition), visibility 0s linear var(--transition);
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition: background-color var(--transition), color var(--transition), box-shadow var(--transition), border-color var(--transition), opacity var(--transition), transform var(--transition), visibility 0s;
+}
+
+.back-to-top:hover {
+  background-color: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent-muted);
+  box-shadow: var(--shadow-lg);
+}
+
+.back-to-top svg {
+  position: relative;
+  z-index: 1;
+  transition: transform var(--transition);
+}
+
+.back-to-top:hover svg {
+  transform: translateY(-2px);
+}
+
+/* Scroll progress ring */
+.back-to-top::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) calc(var(--progress, 0) * 360deg), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  pointer-events: none;
+}
 
 /* ---- View Transitions API: disable default animation ---- */
 ::view-transition-new(root),
@@ -884,9 +941,16 @@ body.splash-active .main.reveal {
     overscroll-behavior: contain;
   }
 
+  /* Theme toggle stays in the bottom left corner */
   .theme-toggle {
-    left: auto;
-    right: 24px;
+    left: 16px;
+    bottom: 16px;
+  }
+
+  /* Back to top stays in the bottom right corner */
+  .back-to-top {
+    right: 16px;
+    bottom: 16px;
   }
 
   .head {
@@ -985,6 +1049,7 @@ body.splash-active .main.reveal {
 }
 
 .theme-toggle:focus-visible,
+.back-to-top:focus-visible,
 .toolbox .control:focus-visible,
 .upload-file label:focus-visible,
 .login-btn:focus-visible,
@@ -1156,12 +1221,14 @@ html.dark .toolbox .control:hover {
   color: #00e5ff;
 }
 
-html.dark .theme-toggle {
+html.dark .theme-toggle,
+html.dark .back-to-top {
   border-color: rgba(0, 229, 255, 0.2);
   background: #0e0e1a;
 }
 
-html.dark .theme-toggle:hover {
+html.dark .theme-toggle:hover,
+html.dark .back-to-top:hover {
   border-color: #00e5ff;
   box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
   color: #00e5ff;
@@ -1340,12 +1407,14 @@ html.dark tr.file-font svg { fill: #b026ff; filter: drop-shadow(0 0 4px rgba(176
     color: #00e5ff;
   }
 
-  html:not(.light) .theme-toggle {
+  html:not(.light) .theme-toggle,
+  html:not(.light) .back-to-top {
     border-color: rgba(0, 229, 255, 0.2);
     background: #0e0e1a;
   }
 
-  html:not(.light) .theme-toggle:hover {
+  html:not(.light) .theme-toggle:hover,
+  html:not(.light) .back-to-top:hover {
     border-color: #00e5ff;
     box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
     color: #00e5ff;
@@ -1373,4 +1442,153 @@ html.dark tr.file-font svg { fill: #b026ff; filter: drop-shadow(0 0 4px rgba(176
   html:not(.light) tr.file-doc svg { fill: #00e5ff; filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.5)); }
   html:not(.light) tr.file-archive svg { fill: #ffb800; filter: drop-shadow(0 0 4px rgba(255, 184, 0, 0.5)); }
   html:not(.light) tr.file-font svg { fill: #b026ff; filter: drop-shadow(0 0 4px rgba(176, 38, 255, 0.5)); }
+}
+
+/* ============================================================
+   【新增】主题切换动画 — 双遮罩 Clip-Path 圆形波纹（方案 A）
+   ------------------------------------------------------------
+   本区块为"纯动画层"：
+   · 不参与主题状态判定 / Class 切换 / localStorage 持久化
+   · 不改变主题按钮的定位样式（按钮位置仍由本文件上方 .theme-toggle 决定）
+   · 遮罩层强制 pointer-events: none，绝不拦截页面任何可交互元素
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1) 可调参数：全部抽离为 CSS 变量（调节入口集中在此）
+   ------------------------------------------------------------ */
+:root {
+  /* -- 锚点坐标（圆形波纹的圆心）：需与主题切换按钮的位置对齐 --
+     【调试 · 预设一】左下角（当前按钮位于左下角）：--theme-ripple-x: 5%;  --theme-ripple-y: 95%;
+     【调试 · 预设二】右上角（若把按钮挪到右上角）： --theme-ripple-x: 95%; --theme-ripple-y: 5%;
+     推荐取值 0% ~ 100%，对准按钮中心即可 */
+  --theme-ripple-x: 5%;
+  --theme-ripple-y: 95%;
+
+  /* -- 遮罩底色 --
+     深色底色：遮罩 A / 遮罩 B 共用（反向遮罩严禁使用白色，杜绝闪白）
+     浅色底色：备用色，默认不参与动画，预留给自定义方案
+     推荐取值 #2b2b2b ~ #08080f；想与站点深色背景完全一致时改成站点背景色即可 */
+  --theme-ripple-dark: #2b2b2b;
+  --theme-ripple-light: #f8f8f8;
+
+  /* -- 时长基准（单位 s / ms 均可）--
+     扩散：遮罩 A 自锚点炸开铺满全屏      推荐 1.2s ~ 1.8s
+     收缩：遮罩 B 向锚点收缩撤离          推荐 1.0s ~ 1.5s
+     图标：日月图标旋转 + 缩放            推荐 0.6s ~ 1.2s
+     图标基础延迟：进场图标的起始等待      推荐 0.4s ~ 1.0s
+     图标错峰：两个图标之间的间隔（不能同步运动）推荐 0.15s ~ 0.4s
+     收尾淡出：遮罩 A 铺满后的淡出时间    推荐 0.1s ~ 0.3s */
+  --theme-ripple-expand-duration: 1.5s;
+  --theme-ripple-collapse-duration: 1.3s;
+  --theme-ripple-icon-duration: 1s;
+  --theme-ripple-icon-delay: 0.8s;
+  --theme-ripple-icon-stagger: 0.25s;
+  --theme-ripple-fade-duration: 0.18s;
+
+  /* -- 缓动函数（可自由自定义）--
+     当前预设：ease-out 风格的三次贝塞尔
+     想换成回弹感：cubic-bezier(0.34, 1.56, 0.64, 1)
+     想换成匀速：  linear
+     想换成原生关键字：ease-out */
+  --theme-ripple-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ------------------------------------------------------------
+   2) 遮罩层：独立 z-index 隔离 + 强制不拦截交互
+   ------------------------------------------------------------ */
+.theme-ripple-mask {
+  position: fixed;
+  inset: 0;
+  /* 层级隔离：高于页面内容（.head z-index:100），低于浮动按钮（z-index:200），
+     保证按钮的日月图标动画始终可见 */
+  z-index: 150;
+  /* 强制不接收任何指针事件，绝不拦截页面交互 */
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  background: var(--theme-ripple-dark);
+  will-change: clip-path;
+}
+
+/* 遮罩 A：负责【浅色 → 暗色】。初始收缩在锚点，动画时向外炸开铺满全屏 */
+.theme-ripple-mask-a {
+  clip-path: circle(0% at var(--theme-ripple-x) var(--theme-ripple-y));
+  transition: opacity var(--theme-ripple-fade-duration) ease-out;
+}
+
+/* 遮罩 B：负责【暗色 → 浅色】。常态铺满全屏作为"盖子"，动画时向锚点收缩撤离 */
+.theme-ripple-mask-b {
+  clip-path: circle(150% at var(--theme-ripple-x) var(--theme-ripple-y));
+  /* 盖子必须瞬间出现（禁止淡入），否则会出现闪色 */
+  transition: none;
+}
+
+.theme-ripple-mask.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.theme-ripple-mask-a.is-expanding {
+  animation: theme-ripple-expand var(--theme-ripple-expand-duration) var(--theme-ripple-ease) forwards;
+}
+
+.theme-ripple-mask-b.is-collapsing {
+  animation: theme-ripple-collapse var(--theme-ripple-collapse-duration) var(--theme-ripple-ease) forwards;
+}
+
+@keyframes theme-ripple-expand {
+  from { clip-path: circle(0% at var(--theme-ripple-x) var(--theme-ripple-y)); }
+  to   { clip-path: circle(150% at var(--theme-ripple-x) var(--theme-ripple-y)); }
+}
+
+@keyframes theme-ripple-collapse {
+  from { clip-path: circle(150% at var(--theme-ripple-x) var(--theme-ripple-y)); }
+  to   { clip-path: circle(0% at var(--theme-ripple-x) var(--theme-ripple-y)); }
+}
+
+/* ------------------------------------------------------------
+   3) 日月图标：旋转 + 缩放，两个图标时序错峰（不能同步运动）
+   ------------------------------------------------------------ */
+html.theme-ripple-active .theme-toggle .icon-sun,
+html.theme-ripple-active .theme-toggle .icon-moon {
+  /* 动画期间两个图标同时在场，避免切换瞬间的生硬替换 */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -10px 0 0 -10px;
+  display: block;
+}
+
+/* 浅色 → 暗色：月亮先退场，太阳延迟入场 */
+html.theme-ripple-forward .theme-toggle .icon-moon {
+  animation: theme-ripple-icon-out var(--theme-ripple-icon-duration) var(--theme-ripple-ease) both;
+  /* 退场图标：基础延迟减去错峰间隔 → 与进场图标错开运动 */
+  animation-delay: calc(var(--theme-ripple-icon-delay) - var(--theme-ripple-icon-stagger));
+}
+
+html.theme-ripple-forward .theme-toggle .icon-sun {
+  animation: theme-ripple-icon-in var(--theme-ripple-icon-duration) var(--theme-ripple-ease) both;
+  animation-delay: var(--theme-ripple-icon-delay);
+}
+
+/* 暗色 → 浅色：太阳先退场，月亮延迟入场 */
+html.theme-ripple-reverse .theme-toggle .icon-sun {
+  animation: theme-ripple-icon-out var(--theme-ripple-icon-duration) var(--theme-ripple-ease) both;
+  /* 退场图标：基础延迟减去错峰间隔 → 与进场图标错开运动 */
+  animation-delay: calc(var(--theme-ripple-icon-delay) - var(--theme-ripple-icon-stagger));
+}
+
+html.theme-ripple-reverse .theme-toggle .icon-moon {
+  animation: theme-ripple-icon-in var(--theme-ripple-icon-duration) var(--theme-ripple-ease) both;
+  animation-delay: var(--theme-ripple-icon-delay);
+}
+
+@keyframes theme-ripple-icon-in {
+  from { opacity: 0; transform: rotate(-120deg) scale(0.3); }
+  to   { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+
+@keyframes theme-ripple-icon-out {
+  from { opacity: 1; transform: rotate(0deg) scale(1); }
+  to   { opacity: 0; transform: rotate(120deg) scale(0.3); }
 }

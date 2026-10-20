@@ -171,7 +171,7 @@
     </div>
   </div>
   <template id="index-data">__INDEX_DATA__</template>
-  <div class="theme-toggle" title="切换明暗模式" onclick="toggleTheme()">
+  <button type="button" class="theme-toggle" title="切换明暗模式" aria-label="切换明暗模式" onclick="toggleTheme()">
     <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -186,7 +186,17 @@
     <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
     </svg>
-  </div>
+  </button>
+  <button type="button" class="back-to-top" title="返回顶部" aria-label="返回顶部">
+    <svg class="icon-top" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5"></line>
+      <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+  </button>
+  <!-- 【新增 DOM 1/2】主题切换动画遮罩 A：浅色 → 暗色，深色底色自锚点向外炸开铺满全屏 -->
+  <div class="theme-ripple-mask theme-ripple-mask-a" aria-hidden="true"></div>
+  <!-- 【新增 DOM 2/2】主题切换动画遮罩 B：暗色 → 浅色，深色底色作为"盖子"向锚点收缩撤离 -->
+  <div class="theme-ripple-mask theme-ripple-mask-b" aria-hidden="true"></div>
   <script src="__ASSETS_PREFIX__index.js"></script>
 </body>
 
